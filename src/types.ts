@@ -1,5 +1,3 @@
-export type SoundVariant = "tick" | "soft-click" | "buzz";
-
 export type PulseBlock = {
   type: "pulse";
   duration: number;
@@ -10,13 +8,7 @@ export type GapBlock = {
   duration: number;
 };
 
-export type AudioBlock = {
-  type: "audio";
-  duration: number;
-  sound: SoundVariant;
-};
-
-export type PatternBlock = PulseBlock | GapBlock | AudioBlock;
+export type PatternBlock = PulseBlock | GapBlock;
 
 export type NamedPattern =
   | "selection"

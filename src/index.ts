@@ -2,7 +2,6 @@ export { getCapabilityState as getCapabilities } from "./capabilities";
 export { defaultPatterns } from "./patterns";
 export { createHaptics, haptics } from "./runtime";
 export type {
-  AudioBlock,
   CapabilityState,
   CreateHapticsOptions,
   GapBlock,
@@ -14,5 +13,4 @@ export type {
   PlaybackMode,
   PlaybackResult,
   PulseBlock,
-  SoundVariant,
 } from "./types";

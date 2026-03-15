@@ -19,6 +19,3 @@ export function getCapabilityState(): CapabilityState {
   };
 }
 
-export function getAudioContextFactory(): typeof AudioContext | undefined {
-  return getAudioContextConstructor();
-}

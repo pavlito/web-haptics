@@ -1,23 +1,41 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { resetAudioEngine } from "../src/audio";
 import { createHaptics, defaultPatterns, haptics } from "../src/index";
 
 class FakeAudioContext {
   currentTime = 0;
+  sampleRate = 44100;
+  state = "running" as AudioContextState;
   destination = {};
 
   resume() {
     return Promise.resolve();
   }
 
-  createOscillator() {
+  createBuffer(_channels: number, length: number, _sampleRate: number) {
+    return {
+      numberOfChannels: 1,
+      length,
+      sampleRate: 44100,
+      getChannelData: () => new Float32Array(length),
+    };
+  }
+
+  createBufferSource() {
     return {
       connect: vi.fn(),
-      frequency: {
-        setValueAtTime: vi.fn(),
-      },
       start: vi.fn(),
       stop: vi.fn(),
-      type: "sine" as OscillatorType,
+      buffer: null,
+    };
+  }
+
+  createBiquadFilter() {
+    return {
+      connect: vi.fn(),
+      type: "bandpass" as BiquadFilterType,
+      frequency: { setValueAtTime: vi.fn() },
+      Q: { setValueAtTime: vi.fn() },
     };
   }
 
@@ -25,9 +43,8 @@ class FakeAudioContext {
     return {
       connect: vi.fn(),
       gain: {
+        value: 1,
         setValueAtTime: vi.fn(),
-        linearRampToValueAtTime: vi.fn(),
-        exponentialRampToValueAtTime: vi.fn(),
       },
     };
   }
@@ -47,6 +64,7 @@ function setAudioContext(enabled: boolean) {
 
 beforeEach(() => {
   vi.unstubAllGlobals();
+  resetAudioEngine();
   setNavigatorVibrate(undefined);
   setAudioContext(false);
 });
@@ -230,35 +248,6 @@ describe("SSR safety", () => {
 });
 
 describe("vibration pattern generation", () => {
-  it("filters audio blocks from vibration pattern", () => {
-    const vibrate = vi.fn(() => true);
-    setNavigatorVibrate(vibrate);
-
-    // Audio block between pulses is skipped — consecutive pulses merge
-    haptics.play([
-      { type: "pulse", duration: 20 },
-      { type: "audio", duration: 100, sound: "tick" },
-      { type: "pulse", duration: 30 },
-    ]);
-
-    expect(vibrate).toHaveBeenCalledWith([50]);
-  });
-
-  it("audio blocks do not appear in vibration pattern with gaps", () => {
-    const vibrate = vi.fn(() => true);
-    setNavigatorVibrate(vibrate);
-
-    haptics.play([
-      { type: "pulse", duration: 20 },
-      { type: "gap", duration: 10 },
-      { type: "audio", duration: 100, sound: "tick" },
-      { type: "pulse", duration: 30 },
-    ]);
-
-    // Audio block skipped, gap separates pulses, second pulse follows gap
-    expect(vibrate).toHaveBeenCalledWith([20, 10, 30]);
-  });
-
   it("merges consecutive gaps in vibration pattern", () => {
     const vibrate = vi.fn(() => true);
     setNavigatorVibrate(vibrate);
