@@ -24,10 +24,17 @@ function startVibrateLoop(
   function loop() {
     if (stopRef.current) return;
     const intensity = intensityRef.current;
-    if (intensity > 0 && navigator.vibrate) {
-      const on = Math.max(1, Math.round(18 * intensity));
-      const off = 18 - on;
-      navigator.vibrate([on, off]);
+    if (intensity > 0 && typeof navigator.vibrate === "function") {
+      // Vibrate for 200ms — rAF fires every ~16ms so we re-trigger
+      // well before it ends, creating continuous vibration.
+      // For intensity < 1, use PWM: alternate on/off in 20ms cycles.
+      if (intensity >= 1) {
+        navigator.vibrate(200);
+      } else {
+        const on = Math.max(1, Math.round(20 * intensity));
+        const off = 20 - on;
+        navigator.vibrate([on, off, on, off, on, off, on, off, on, off]);
+      }
     }
     requestAnimationFrame(loop);
   }
