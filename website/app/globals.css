@@ -838,6 +838,70 @@ pre code,
   text-decoration: underline;
 }
 
+/* Pattern bar (sequencer visualization) */
+.pattern-bar {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.pattern-bar-track {
+  position: relative;
+  display: flex;
+  height: 32px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--gray3);
+  background: var(--gray2);
+}
+
+.pattern-bar-block {
+  height: 100%;
+  transition: opacity 0.15s;
+}
+
+.pattern-bar-pulse {
+  background: var(--gray12);
+  border-right: 1px solid var(--gray0);
+}
+
+.pattern-bar-pulse:last-of-type {
+  border-right: none;
+}
+
+.pattern-bar-gap {
+  background: transparent;
+}
+
+.pattern-bar-playhead {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  background: #3b82f6;
+  box-shadow: 0 0 6px rgba(59, 130, 246, 0.5);
+  animation: playhead-sweep linear forwards;
+  will-change: transform;
+}
+
+@keyframes playhead-sweep {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(var(--bar-width, 300px))); }
+}
+
+.pattern-bar-labels {
+  display: flex;
+  margin-top: 4px;
+}
+
+.pattern-bar-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--gray9);
+  text-align: center;
+  overflow: hidden;
+}
+
 /* Per-pattern button animations */
 @keyframes btn-bounce {
   0%, 100% { transform: translateY(0); }
