@@ -5,12 +5,16 @@ import { useEffect, useRef, useState } from "react";
 type Block = {
   type: "pulse" | "gap";
   duration: number;
+  intensity?: number;
 };
 
 type PatternBarProps = {
   pattern: readonly Block[];
   playKey: number;
 };
+
+const MAX_BAR_HEIGHT = 32;
+const MIN_BAR_HEIGHT = 8;
 
 export function PatternBar({ pattern, playKey }: PatternBarProps) {
   const [lit, setLit] = useState(false);
@@ -32,9 +36,8 @@ export function PatternBar({ pattern, playKey }: PatternBarProps) {
 
   if (totalDuration === 0) return null;
 
-  // Build positions on timeline
   let cursor = 0;
-  const items: { type: string; startPct: number; widthPct: number; duration: number; index: number }[] = [];
+  const items: { type: string; startPct: number; widthPct: number; duration: number; intensity: number; index: number }[] = [];
 
   pattern.forEach((block, i) => {
     items.push({
@@ -42,6 +45,7 @@ export function PatternBar({ pattern, playKey }: PatternBarProps) {
       startPct: (cursor / totalDuration) * 100,
       widthPct: (block.duration / totalDuration) * 100,
       duration: block.duration,
+      intensity: block.type === "pulse" ? (block.intensity ?? 1) : 0,
       index: i,
     });
     cursor += block.duration;
@@ -51,18 +55,27 @@ export function PatternBar({ pattern, playKey }: PatternBarProps) {
     <div className="seq">
       <div className="seq-timeline">
         <div className="seq-spine" />
-        {items.map((item) => (
-          <div
-            key={item.index}
-            className={`seq-tick seq-tick-${item.type} ${lit && item.type === "pulse" ? "seq-tick-active" : ""}`}
-            style={{
-              left: `${item.startPct + item.widthPct / 2}%`,
-            }}
-          >
-            <div className="seq-tick-bar" />
-            <span className="seq-tick-label">{item.duration}ms</span>
-          </div>
-        ))}
+        {items.map((item) => {
+          const barHeight = item.type === "pulse"
+            ? MIN_BAR_HEIGHT + (MAX_BAR_HEIGHT - MIN_BAR_HEIGHT) * item.intensity
+            : 14;
+
+          return (
+            <div
+              key={item.index}
+              className={`seq-tick seq-tick-${item.type} ${lit && item.type === "pulse" ? "seq-tick-active" : ""}`}
+              style={{
+                left: `${item.startPct + item.widthPct / 2}%`,
+              }}
+            >
+              <div
+                className="seq-tick-bar"
+                style={item.type === "pulse" ? { height: `${barHeight}px` } : undefined}
+              />
+              <span className="seq-tick-label">{item.duration}ms</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

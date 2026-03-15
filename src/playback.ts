@@ -3,24 +3,50 @@ import { getCapabilityState } from "./capabilities";
 import { playSafariPattern } from "./safari-haptics";
 import type { PatternBlock, PlaybackResult } from "./types";
 
+const PWM_CYCLE = 20; // ms per PWM cycle for intensity simulation
+
+function modulateVibration(duration: number, intensity: number): number[] {
+  if (intensity >= 1) return [duration];
+  if (intensity <= 0) return [];
+  const onTime = Math.max(1, Math.round(PWM_CYCLE * intensity));
+  const offTime = PWM_CYCLE - onTime;
+  const result: number[] = [];
+  let remaining = duration;
+  while (remaining >= PWM_CYCLE) {
+    result.push(onTime, offTime);
+    remaining -= PWM_CYCLE;
+  }
+  if (remaining > 0) {
+    const remOn = Math.max(1, Math.round(remaining * intensity));
+    const remOff = remaining - remOn;
+    result.push(remOn);
+    if (remOff > 0) result.push(remOff);
+  }
+  return result;
+}
+
 function toVibrationPattern(pattern: readonly PatternBlock[]): number[] {
   const result: number[] = [];
-  let lastType: "pulse" | "gap" | null = null;
   for (const block of pattern) {
     if (block.type === "pulse") {
-      if (lastType === "pulse") {
-        result[result.length - 1] += block.duration;
-      } else {
-        result.push(block.duration);
+      const intensity = block.intensity ?? 1;
+      const modulated = modulateVibration(block.duration, intensity);
+      if (modulated.length > 0) {
+        // Merge with previous if needed
+        if (result.length > 0 && result.length % 2 === 1) {
+          // Last entry is an "on" — add gap of 0 then modulated
+          result.push(0, ...modulated);
+        } else {
+          result.push(...modulated);
+        }
       }
-      lastType = "pulse";
     } else if (block.type === "gap") {
-      if (lastType === null) continue;
-      if (lastType === "gap") {
+      if (result.length === 0) continue;
+      if (result.length % 2 === 0) {
+        // Last entry is "off" — merge
         result[result.length - 1] += block.duration;
       } else {
         result.push(block.duration);
-        lastType = "gap";
       }
     }
   }
@@ -37,7 +63,7 @@ function playAudioClicks(pattern: readonly PatternBlock[]): boolean {
 
   for (const block of pattern) {
     if (block.type === "pulse" && block.duration >= 5) {
-      engine.playClick(startTime + cursorMs / 1000);
+      engine.playClick(startTime + cursorMs / 1000, block.intensity ?? 1);
       scheduled = true;
     }
     cursorMs += block.duration;

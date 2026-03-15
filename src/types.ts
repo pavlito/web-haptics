@@ -1,6 +1,7 @@
 export type PulseBlock = {
   type: "pulse";
   duration: number;
+  intensity?: number; // 0-1, default 1.0
 };
 
 export type GapBlock = {

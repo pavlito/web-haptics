@@ -5,7 +5,7 @@ const FILTER_Q = 8;
 const NOISE_DECAY = 25;
 
 type AudioEngine = {
-  playClick(startTime: number): void;
+  playClick(startTime: number, intensity?: number): void;
   context: AudioContext;
 };
 
@@ -35,10 +35,13 @@ export function getAudioEngine(): AudioEngine | null {
     return buffer;
   }
 
-  function playClick(startTime: number): void {
+  function playClick(startTime: number, intensity = 1): void {
     if (ctx.state === "suspended") {
       ctx.resume().catch(() => undefined);
     }
+
+    const level = Math.max(0, Math.min(1, intensity));
+    if (level === 0) return;
 
     const buffer = createNoiseBuffer();
     const source = ctx.createBufferSource();
@@ -51,7 +54,7 @@ export function getAudioEngine(): AudioEngine | null {
     filter.Q.setValueAtTime(FILTER_Q, startTime);
 
     const gain = ctx.createGain();
-    gain.gain.setValueAtTime(CLICK_GAIN, startTime);
+    gain.gain.setValueAtTime(CLICK_GAIN * level, startTime);
 
     source.connect(filter);
     filter.connect(gain);
