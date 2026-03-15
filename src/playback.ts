@@ -1,5 +1,6 @@
 import { getAudioEngine } from "./audio";
 import { getCapabilityState } from "./capabilities";
+import { playSafariPattern } from "./safari-haptics";
 import type { PatternBlock, PlaybackResult } from "./types";
 
 function toVibrationPattern(pattern: readonly PatternBlock[]): number[] {
@@ -48,6 +49,12 @@ function playAudioClicks(pattern: readonly PatternBlock[]): boolean {
 export function playPattern(pattern: readonly PatternBlock[]): PlaybackResult {
   const capabilities = getCapabilityState();
   const vibrationPattern = toVibrationPattern(pattern);
+
+  if (capabilities.safari && pattern.some((b) => b.type === "pulse" && b.duration >= 5)) {
+    playSafariPattern(pattern);
+    try { playAudioClicks(pattern); } catch {}
+    return { mode: "haptics" };
+  }
 
   if (
     vibrationPattern.length > 0 &&

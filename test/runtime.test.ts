@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { resetAudioEngine } from "../src/audio";
 import { createHaptics, defaultPatterns, haptics } from "../src/index";
+import { destroySafariHaptic } from "../src/safari-haptics";
 
 class FakeAudioContext {
   currentTime = 0;
@@ -65,6 +66,7 @@ function setAudioContext(enabled: boolean) {
 beforeEach(() => {
   vi.unstubAllGlobals();
   resetAudioEngine();
+  destroySafariHaptic();
   setNavigatorVibrate(undefined);
   setAudioContext(false);
 });
@@ -350,5 +352,27 @@ describe("Safari detection", () => {
 
     const caps = haptics.getCapabilities();
     expect(caps.safari).toBe(false);
+  });
+});
+
+describe("Safari haptics", () => {
+  it("uses haptics mode on iOS Safari", () => {
+    vi.stubGlobal("navigator", {
+      userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+    });
+    setAudioContext(true);
+
+    const result = haptics.success();
+    expect(result.mode).toBe("haptics");
+  });
+
+  it("returns none for gap-only pattern on Safari", () => {
+    vi.stubGlobal("navigator", {
+      userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+    });
+    setAudioContext(true);
+
+    const result = haptics.play([{ type: "gap", duration: 50 }]);
+    expect(result.mode).toBe("none");
   });
 });
