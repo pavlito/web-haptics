@@ -31,7 +31,7 @@ export function PlayDemo() {
       >
         Run play()
       </button>
-      <PatternBar pattern={customPattern} playing={playCount > 0} />
+      <PatternBar pattern={customPattern} playKey={playCount} />
       {mode && (
         <div className="trigger-result">
           <span className={`mode-badge mode-${mode}`}>{mode}</span>

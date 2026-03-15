@@ -31,7 +31,7 @@ export function TriggerButton({ method }: TriggerButtonProps) {
       >
         Trigger haptics
       </button>
-      <PatternBar pattern={pattern} playing={playCount > 0} />
+      <PatternBar pattern={pattern} playKey={playCount} />
       {mode && (
         <div className="trigger-result">
           <span className={`mode-badge mode-${mode}`}>{mode}</span>
