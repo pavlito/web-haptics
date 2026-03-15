@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import type { PlaybackMode } from "web-haptics";
 import { haptics } from "web-haptics";
 
@@ -31,10 +31,21 @@ let toastId = 0;
 export function DemoPanel() {
   const [active, setActive] = useState("selection");
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [animating, setAnimating] = useState<string | null>(null);
+  const animTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   function trigger(name: string, action: () => { mode: PlaybackMode }) {
     const result = action();
     setActive(name);
+
+    // Restart animation (clear + rAF to force reflow between removal and addition)
+    if (animTimeoutRef.current) clearTimeout(animTimeoutRef.current);
+    setAnimating(null);
+    requestAnimationFrame(() => {
+      setAnimating(name);
+      animTimeoutRef.current = setTimeout(() => setAnimating(null), 400);
+    });
+
     const id = ++toastId;
     setToasts((prev) => [...prev, { id, pattern: name, mode: result.mode }]);
     setTimeout(() => {
@@ -51,7 +62,7 @@ export function DemoPanel() {
           <button
             key={p.name}
             type="button"
-            className={`btn ${active === p.name ? "btn-active" : ""}`}
+            className={`btn ${active === p.name ? "btn-active" : ""} ${animating === p.name ? `btn-anim-${p.name}` : ""}`}
             onClick={() => trigger(p.name, p.action)}
           >
             {p.label}
