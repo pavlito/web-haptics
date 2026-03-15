@@ -8,6 +8,8 @@ const PWM_CYCLE = 20; // ms per PWM cycle for intensity simulation
 function modulateVibration(duration: number, intensity: number): number[] {
   if (intensity >= 1) return [duration];
   if (intensity <= 0) return [];
+  // Short pulses: just use full duration (motor can't modulate sub-20ms)
+  if (duration <= PWM_CYCLE) return [duration];
   const onTime = Math.max(1, Math.round(PWM_CYCLE * intensity));
   const offTime = PWM_CYCLE - onTime;
   const result: number[] = [];
@@ -17,10 +19,7 @@ function modulateVibration(duration: number, intensity: number): number[] {
     remaining -= PWM_CYCLE;
   }
   if (remaining > 0) {
-    const remOn = Math.max(1, Math.round(remaining * intensity));
-    const remOff = remaining - remOn;
-    result.push(remOn);
-    if (remOff > 0) result.push(remOff);
+    result.push(remaining);
   }
   return result;
 }
