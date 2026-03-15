@@ -32,12 +32,10 @@ export function TriggerButton({ method }: TriggerButtonProps) {
         Trigger haptics
       </button>
       <PatternBar pattern={pattern} playKey={playCount} />
-      {mode && (
-        <div className="trigger-result">
-          <span className={`mode-badge mode-${mode}`}>{mode}</span>
-          <span className="trigger-method">{method}()</span>
-        </div>
-      )}
+      <div className="trigger-result" style={{ visibility: mode ? "visible" : "hidden" }}>
+        <span className={`mode-badge mode-${mode ?? "none"}`}>{mode ?? "none"}</span>
+        <span className="trigger-method">{method}()</span>
+      </div>
     </div>
   );
 }
