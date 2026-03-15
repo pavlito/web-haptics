@@ -17,7 +17,7 @@ export function PlayDemo() {
           const result = haptics.play([
             { type: "pulse", duration: 20 },
             { type: "gap", duration: 24 },
-            { type: "audio", sound: "tick", duration: 60 },
+            { type: "pulse", duration: 60 },
           ]);
           setMode(result.mode);
           setFlash(true);

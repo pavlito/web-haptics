@@ -11,7 +11,6 @@ export default function CreateHapticsPage() {
       sections={[
         { id: "basic-usage", label: "Basic usage" },
         { id: "register", label: "register()" },
-        { id: "sound-variants", label: "Sound variants" },
       ]}
       prev={{ href: "/haptics", label: "haptics" }}
       next={{ href: "/fallbacks", label: "Fallbacks" }}
@@ -30,7 +29,7 @@ const appHaptics = createHaptics({
     saveSuccess: [
       { type: "pulse", duration: 20 },
       { type: "gap", duration: 24 },
-      { type: "audio", sound: "soft-click", duration: 80 }
+      { type: "pulse", duration: 80 }
     ]
   }
 });
@@ -57,19 +56,6 @@ appHaptics.play("delete");`}
         </DocDemo>
       </section>
 
-      <section>
-        <h2 id="sound-variants">Sound variants</h2>
-        <p>Three built-in audio tones for the audio fallback path.</p>
-        <CodeBlock
-          code={`// "tick"       — 920Hz square wave, sharp
-// "soft-click" — 620Hz triangle wave, gentle
-// "buzz"       — 180Hz sawtooth wave, deep
-
-{ type: "audio", sound: "tick", duration: 60 }
-{ type: "audio", sound: "soft-click", duration: 80 }
-{ type: "audio", sound: "buzz", duration: 100 }`}
-        />
-      </section>
     </DocsLayout>
   );
 }

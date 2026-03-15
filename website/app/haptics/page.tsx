@@ -69,7 +69,7 @@ export default function HapticsPage() {
           code={`haptics.play([
   { type: "pulse", duration: 20 },
   { type: "gap", duration: 24 },
-  { type: "audio", sound: "tick", duration: 60 }
+  { type: "pulse", duration: 60 }
 ]);`}
         >
           <PlayDemo />
@@ -121,7 +121,6 @@ export default function HapticsPage() {
           <tbody>
             <tr><td><code>pulse</code></td><td><code>duration: number</code></td></tr>
             <tr><td><code>gap</code></td><td><code>duration: number</code></td></tr>
-            <tr><td><code>audio</code></td><td><code>duration: number, sound: {'"tick" | "soft-click" | "buzz"'}</code></td></tr>
           </tbody>
         </table>
       </section>
