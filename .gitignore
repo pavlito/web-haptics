@@ -1,0 +1,14 @@
+node_modules
+dist
+coverage
+*.tgz
+*.tsbuildinfo
+.DS_Store
+docs
+.claude
+.next
+
+website/node_modules
+website/.next
+website/out
+website/tsconfig.tsbuildinfo
