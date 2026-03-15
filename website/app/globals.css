@@ -838,6 +838,44 @@ pre code,
   text-decoration: underline;
 }
 
+/* Per-pattern button animations */
+@keyframes btn-bounce {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-6px); }
+  60% { transform: translateY(-2px); }
+}
+
+@keyframes btn-shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-4px); }
+  30% { transform: translateX(4px); }
+  45% { transform: translateX(-3px); }
+  60% { transform: translateX(3px); }
+  75% { transform: translateX(-1px); }
+}
+
+@keyframes btn-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+
+@keyframes btn-snap {
+  0%, 100% { transform: translateY(0); }
+  14% { transform: translateY(-2px); }
+  28% { transform: translateY(0); }
+  42% { transform: translateY(-2px); }
+  56% { transform: translateY(0); }
+  70% { transform: translateY(-2px); }
+  84% { transform: translateY(0); }
+}
+
+.btn-anim-selection { animation: btn-pop 0.25s ease; }
+.btn-anim-success { animation: btn-bounce 0.35s ease; }
+.btn-anim-error { animation: btn-shake 0.3s ease; }
+.btn-anim-toggle { animation: btn-pop 0.2s ease; }
+.btn-anim-snap { animation: btn-snap 0.35s ease; }
+
 @media (max-width: 900px) {
   .docs-sidebar {
     position: static;
