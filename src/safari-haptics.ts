@@ -44,7 +44,13 @@ export function triggerSafariHaptic(): void {
   label?.click();
 }
 
+let pendingTimers: ReturnType<typeof setTimeout>[] = [];
+
 export function playSafariPattern(pattern: readonly PatternBlock[]): void {
+  // Cleanup previous timers to prevent accumulation on rapid calls
+  for (const id of pendingTimers) clearTimeout(id);
+  pendingTimers = [];
+
   let cursorMs = 0;
   const pulseTimes: number[] = [];
 
@@ -63,7 +69,7 @@ export function playSafariPattern(pattern: readonly PatternBlock[]): void {
   // Subsequent clicks fire at their scheduled times
   for (let i = 1; i < pulseTimes.length; i++) {
     const delay = pulseTimes[i] - pulseTimes[0];
-    setTimeout(() => triggerSafariHaptic(), delay);
+    pendingTimers.push(setTimeout(() => triggerSafariHaptic(), delay));
   }
 }
 

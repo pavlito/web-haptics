@@ -53,7 +53,7 @@ export const haptics: HapticsApi = {
   error: () => playNamedPattern("error"),
   toggle: () => playNamedPattern("toggle"),
   snap: () => playNamedPattern("snap"),
-  play: (pattern) => playPattern(pattern),
+  play: (pattern) => playPattern(clonePattern(pattern)),
   getCapabilities: () => getCapabilityState(),
 };
 

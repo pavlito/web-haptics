@@ -2,19 +2,22 @@
   "name": "web-haptics",
   "version": "0.1.0",
   "description": "Web haptics and audio fallback for interaction feedback on the web.",
-  "type": "module",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
     }
   },
   "scripts": {
@@ -45,7 +48,6 @@
     "url": "https://github.com/pavlito/web-haptics/issues"
   },
   "devDependencies": {
-    "@types/node": "^25.5.0",
     "concurrently": "^9.2.0",
     "jsdom": "^29.0.0",
     "tsup": "^8.5.0",

@@ -23,7 +23,7 @@ export default function FallbacksPage() {
 
 console.log(caps.haptics); // navigator.vibrate exists
 console.log(caps.audio);   // Web Audio API exists
-console.log(caps.safari);  // iOS Safari haptics available`}
+console.log(caps.ios);     // iOS haptics available`}
         >
           <TriggerButton method="selection" />
         </DocDemo>

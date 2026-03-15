@@ -387,7 +387,7 @@ describe("iOS haptics", () => {
     expect(result.mode).toBe("haptics");
   });
 
-  it("returns none for gap-only pattern on Safari", () => {
+  it("returns none for gap-only pattern on iOS", () => {
     vi.stubGlobal("navigator", {
       userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
     });
@@ -395,5 +395,62 @@ describe("iOS haptics", () => {
 
     const result = haptics.play([{ type: "gap", duration: 50 }]);
     expect(result.mode).toBe("none");
+  });
+});
+
+describe("intensity and PWM", () => {
+  it("intensity 0 produces no vibration", () => {
+    const vibrate = vi.fn(() => true);
+    setNavigatorVibrate(vibrate);
+
+    haptics.play([{ type: "pulse", duration: 20, intensity: 0 }]);
+
+    expect(vibrate).not.toHaveBeenCalled();
+  });
+
+  it("intensity 1 produces full duration vibration", () => {
+    const vibrate = vi.fn(() => true);
+    setNavigatorVibrate(vibrate);
+
+    haptics.play([{ type: "pulse", duration: 20, intensity: 1 }]);
+
+    expect(vibrate).toHaveBeenCalledWith([20]);
+  });
+
+  it("intensity 0.5 produces PWM modulated vibration for long pulses", () => {
+    const vibrate = vi.fn(() => true);
+    setNavigatorVibrate(vibrate);
+
+    haptics.play([{ type: "pulse", duration: 40, intensity: 0.5 }]);
+
+    // 40ms / 20ms PWM_CYCLE = 2 cycles, each 10ms on + 10ms off
+    expect(vibrate).toHaveBeenCalled();
+    const pattern = vibrate.mock.calls[0][0] as number[];
+    expect(pattern.length).toBeGreaterThan(1);
+    expect(pattern[0]).toBe(10); // on time
+    expect(pattern[1]).toBe(10); // off time
+  });
+
+  it("short pulse with intensity skips PWM", () => {
+    const vibrate = vi.fn(() => true);
+    setNavigatorVibrate(vibrate);
+
+    haptics.play([{ type: "pulse", duration: 15, intensity: 0.5 }]);
+
+    // 15ms <= PWM_CYCLE (20ms), returns [duration] directly
+    expect(vibrate).toHaveBeenCalledWith([15]);
+  });
+});
+
+describe("iPadOS detection with userAgentData", () => {
+  it("detects iPadOS via userAgentData when platform is absent", () => {
+    vi.stubGlobal("navigator", {
+      userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15",
+      maxTouchPoints: 5,
+      userAgentData: { platform: "macOS" },
+    });
+
+    const caps = haptics.getCapabilities();
+    expect(caps.ios).toBe(true);
   });
 });

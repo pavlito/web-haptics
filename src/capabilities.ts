@@ -13,10 +13,16 @@ function getAudioContextConstructor(): typeof AudioContext | undefined {
 function isIOS(): boolean {
   if (typeof navigator === "undefined") return false;
   const ua = navigator.userAgent;
-  return (
-    /iPad|iPhone|iPod/.test(ua) ||
-    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
-  );
+  if (/iPad|iPhone|iPod/.test(ua)) return true;
+  // iPadOS masquerades as macOS — check touch capability
+  if (navigator.maxTouchPoints > 1) {
+    // navigator.platform is deprecated but still needed for Safari on iPadOS
+    if (navigator.platform === "MacIntel") return true;
+    // Safety net for Chromium browsers where platform may be removed first
+    const uad = (navigator as any).userAgentData;
+    if (uad?.platform === "macOS") return true;
+  }
+  return false;
 }
 
 export function getCapabilityState(): CapabilityState {
