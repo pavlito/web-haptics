@@ -1081,3 +1081,114 @@ pre code,
     padding: 16px 0;
   }
 }
+
+/* Playground (Simon Haptics) */
+.playground {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 0 var(--side-padding);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  min-height: 80vh;
+  justify-content: center;
+}
+
+.playground-header {
+  text-align: center;
+}
+
+.playground-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.playground-desc {
+  color: var(--gray11);
+  font-size: 16px;
+  margin-top: 8px;
+  min-height: 25px;
+}
+
+.playground-score {
+  display: flex;
+  gap: 24px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--gray10);
+}
+
+.playground-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+}
+
+.playground-grid > :last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+.playground-btn {
+  height: 80px;
+  border-radius: 12px;
+  border: 2px solid var(--gray4);
+  background: var(--gray1);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--gray11);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s, box-shadow 0.15s;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.playground-btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.playground-btn:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.playground-btn-lit {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.2);
+}
+
+.playground-btn-wrong {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+  animation: btn-shake 0.3s ease;
+}
+
+.playground-actions {
+  min-height: 48px;
+}
+
+.playground-start {
+  height: 48px;
+  padding: 0 40px;
+  border-radius: 6px;
+  border: none;
+  background: var(--gray12);
+  color: var(--gray1);
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.playground-start:hover {
+  background: var(--hover);
+}
