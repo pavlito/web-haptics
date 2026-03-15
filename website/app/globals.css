@@ -838,56 +838,81 @@ pre code,
   text-decoration: underline;
 }
 
-/* Sequencer (drum machine visualization) */
+/* Sequencer timeline (fishbone visualization) */
 .seq {
   width: 100%;
-  margin-top: 16px;
+  margin-top: 20px;
+  padding: 0 8px;
 }
 
-.seq-steps {
-  display: flex;
-  gap: 0;
-  align-items: flex-end;
-  height: 48px;
+.seq-timeline {
+  position: relative;
+  height: 52px;
 }
 
-.seq-gap {
-  height: 100%;
+.seq-spine {
+  position: absolute;
+  top: 16px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--gray5);
+  border-radius: 1px;
 }
 
-.seq-step {
+.seq-tick {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  height: 100%;
-  justify-content: flex-end;
+  gap: 4px;
 }
 
-.seq-bar {
-  width: 100%;
-  height: 28px;
-  border-radius: 4px;
-  background: var(--gray4);
-  border: 1px solid var(--gray5);
-  transition: background 0.08s, border-color 0.08s, box-shadow 0.08s;
+.seq-tick-bar {
+  width: 6px;
+  height: 32px;
+  border-radius: 3px;
+  background: var(--gray8);
+  transition: background 0.06s, box-shadow 0.06s, transform 0.06s;
 }
 
-.seq-step-active .seq-bar {
+.seq-tick-active .seq-tick-bar {
   background: #22c55e;
-  border-color: #16a34a;
-  box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.5), 0 0 20px rgba(34, 197, 94, 0.2);
+  transform: scaleY(1.15);
 }
 
-.seq-label {
+.seq-tick-label {
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--gray9);
-  transition: color 0.08s;
+  white-space: nowrap;
+  transition: color 0.06s;
 }
 
-.seq-step-active .seq-label {
+.seq-tick-active .seq-tick-label {
   color: #16a34a;
+}
+
+.seq-markers {
+  position: relative;
+  height: 14px;
+  margin-top: -8px;
+}
+
+.seq-gap-marker {
+  position: absolute;
+  top: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.seq-gap-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--gray7);
 }
 
 /* Per-pattern button animations */

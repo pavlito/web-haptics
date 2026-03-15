@@ -13,70 +13,85 @@ type PatternBarProps = {
 };
 
 export function PatternBar({ pattern, playing }: PatternBarProps) {
-  const [activeStep, setActiveStep] = useState(-1);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const totalDuration = pattern.reduce((sum, b) => sum + b.duration, 0);
 
   useEffect(() => {
     if (!playing) return;
 
-    // Clear previous animation
     timeoutsRef.current.forEach(clearTimeout);
     timeoutsRef.current = [];
 
-    // Build timeline: cumulative ms offset for each block
+    const scale = 8; // slow down so animation is visible
     let cursor = 0;
-    const steps: { index: number; time: number; type: string }[] = [];
+
     pattern.forEach((block, i) => {
-      steps.push({ index: i, time: cursor, type: block.type });
+      if (block.type === "pulse") {
+        const t = setTimeout(() => setActiveIndex(i), cursor * scale);
+        timeoutsRef.current.push(t);
+      }
       cursor += block.duration;
     });
 
-    // Slow down 8x so it's visible (patterns are 48-102ms total)
-    const scale = 8;
-
-    steps.forEach((step) => {
-      const t = setTimeout(() => setActiveStep(step.index), step.time * scale);
-      timeoutsRef.current.push(t);
-    });
-
-    // Clear active after last step
-    const endT = setTimeout(() => setActiveStep(-1), cursor * scale + 200);
+    const endT = setTimeout(() => setActiveIndex(-1), cursor * scale + 200);
     timeoutsRef.current.push(endT);
 
-    return () => {
-      timeoutsRef.current.forEach(clearTimeout);
-    };
+    return () => timeoutsRef.current.forEach(clearTimeout);
   }, [playing, pattern]);
 
-  // Only render pulse blocks as steps, gaps become spacing
-  const pulses = pattern
-    .map((block, i) => ({ ...block, originalIndex: i }))
-    .filter((b) => b.type === "pulse");
+  if (totalDuration === 0) return null;
 
-  if (pulses.length === 0) return null;
+  // Build pulse positions on timeline
+  let cursor = 0;
+  const items: { type: string; startPct: number; widthPct: number; duration: number; index: number }[] = [];
+
+  pattern.forEach((block, i) => {
+    items.push({
+      type: block.type,
+      startPct: (cursor / totalDuration) * 100,
+      widthPct: (block.duration / totalDuration) * 100,
+      duration: block.duration,
+      index: i,
+    });
+    cursor += block.duration;
+  });
+
+  const pulses = items.filter((it) => it.type === "pulse");
 
   return (
     <div className="seq">
-      <div className="seq-steps">
-        {pattern.map((block, i) => {
-          if (block.type === "gap") {
-            return (
-              <div
-                key={i}
-                className="seq-gap"
-                style={{ flex: block.duration }}
-              />
-            );
-          }
-          const isActive = activeStep === i;
+      {/* Timeline spine */}
+      <div className="seq-timeline">
+        <div className="seq-spine" />
+        {pulses.map((p) => (
+          <div
+            key={p.index}
+            className={`seq-tick ${activeIndex === p.index ? "seq-tick-active" : ""}`}
+            style={{
+              left: `${p.startPct + p.widthPct / 2}%`,
+            }}
+          >
+            <div className="seq-tick-bar" />
+            <span className="seq-tick-label">{p.duration}ms</span>
+          </div>
+        ))}
+      </div>
+      {/* Duration markers for gaps */}
+      <div className="seq-markers">
+        {items.map((it, i) => {
+          if (it.type !== "gap") return null;
           return (
             <div
               key={i}
-              className={`seq-step ${isActive ? "seq-step-active" : ""}`}
-              style={{ flex: block.duration }}
+              className="seq-gap-marker"
+              style={{
+                left: `${it.startPct}%`,
+                width: `${it.widthPct}%`,
+              }}
             >
-              <div className="seq-bar" />
-              <span className="seq-label">{block.duration}ms</span>
+              <span className="seq-gap-label">{it.duration}ms</span>
             </div>
           );
         })}
