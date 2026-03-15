@@ -13,55 +13,71 @@ type PatternBarProps = {
 };
 
 export function PatternBar({ pattern, playing }: PatternBarProps) {
-  const [playKey, setPlayKey] = useState(0);
-  const trackRef = useRef<HTMLDivElement>(null);
+  const [activeStep, setActiveStep] = useState(-1);
+  const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => {
-    if (playing) {
-      setPlayKey((k) => k + 1);
-    }
-  }, [playing]);
+    if (!playing) return;
 
-  const totalDuration = pattern.reduce((sum, b) => sum + b.duration, 0);
-  if (totalDuration === 0) return null;
+    // Clear previous animation
+    timeoutsRef.current.forEach(clearTimeout);
+    timeoutsRef.current = [];
 
-  const trackWidth = trackRef.current?.offsetWidth ?? 300;
+    // Build timeline: cumulative ms offset for each block
+    let cursor = 0;
+    const steps: { index: number; time: number; type: string }[] = [];
+    pattern.forEach((block, i) => {
+      steps.push({ index: i, time: cursor, type: block.type });
+      cursor += block.duration;
+    });
+
+    // Slow down 8x so it's visible (patterns are 48-102ms total)
+    const scale = 8;
+
+    steps.forEach((step) => {
+      const t = setTimeout(() => setActiveStep(step.index), step.time * scale);
+      timeoutsRef.current.push(t);
+    });
+
+    // Clear active after last step
+    const endT = setTimeout(() => setActiveStep(-1), cursor * scale + 200);
+    timeoutsRef.current.push(endT);
+
+    return () => {
+      timeoutsRef.current.forEach(clearTimeout);
+    };
+  }, [playing, pattern]);
+
+  // Only render pulse blocks as steps, gaps become spacing
+  const pulses = pattern
+    .map((block, i) => ({ ...block, originalIndex: i }))
+    .filter((b) => b.type === "pulse");
+
+  if (pulses.length === 0) return null;
 
   return (
-    <div className="pattern-bar">
-      <div className="pattern-bar-track" ref={trackRef}>
+    <div className="seq">
+      <div className="seq-steps">
         {pattern.map((block, i) => {
-          const widthPct = (block.duration / totalDuration) * 100;
+          if (block.type === "gap") {
+            return (
+              <div
+                key={i}
+                className="seq-gap"
+                style={{ flex: block.duration }}
+              />
+            );
+          }
+          const isActive = activeStep === i;
           return (
             <div
               key={i}
-              className={`pattern-bar-block pattern-bar-${block.type}`}
-              style={{ width: `${widthPct}%` }}
-            />
-          );
-        })}
-        {playKey > 0 && (
-          <div
-            key={playKey}
-            className="pattern-bar-playhead"
-            style={{
-              animationDuration: `${totalDuration * 8}ms`,
-              ["--bar-width" as string]: `${trackWidth}px`,
-            }}
-          />
-        )}
-      </div>
-      <div className="pattern-bar-labels">
-        {pattern.map((block, i) => {
-          const widthPct = (block.duration / totalDuration) * 100;
-          return (
-            <span
-              key={i}
-              className="pattern-bar-label"
-              style={{ width: `${widthPct}%` }}
+              className={`seq-step ${isActive ? "seq-step-active" : ""}`}
+              style={{ flex: block.duration }}
             >
-              {block.duration > 10 ? `${block.duration}ms` : ""}
-            </span>
+              <div className="seq-bar" />
+              <span className="seq-label">{block.duration}ms</span>
+            </div>
           );
         })}
       </div>

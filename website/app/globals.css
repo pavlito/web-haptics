@@ -838,68 +838,56 @@ pre code,
   text-decoration: underline;
 }
 
-/* Pattern bar (sequencer visualization) */
-.pattern-bar {
+/* Sequencer (drum machine visualization) */
+.seq {
   width: 100%;
-  margin-top: 12px;
+  margin-top: 16px;
 }
 
-.pattern-bar-track {
-  position: relative;
+.seq-steps {
   display: flex;
-  height: 32px;
-  border-radius: 6px;
-  overflow: hidden;
-  border: 1px solid var(--gray3);
-  background: var(--gray2);
+  gap: 0;
+  align-items: flex-end;
+  height: 48px;
 }
 
-.pattern-bar-block {
+.seq-gap {
   height: 100%;
-  transition: opacity 0.15s;
 }
 
-.pattern-bar-pulse {
-  background: var(--gray12);
-  border-right: 1px solid var(--gray0);
-}
-
-.pattern-bar-pulse:last-of-type {
-  border-right: none;
-}
-
-.pattern-bar-gap {
-  background: transparent;
-}
-
-.pattern-bar-playhead {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 2px;
-  height: 100%;
-  background: #3b82f6;
-  box-shadow: 0 0 6px rgba(59, 130, 246, 0.5);
-  animation: playhead-sweep linear forwards;
-  will-change: transform;
-}
-
-@keyframes playhead-sweep {
-  from { transform: translateX(0); }
-  to { transform: translateX(calc(var(--bar-width, 300px))); }
-}
-
-.pattern-bar-labels {
+.seq-step {
   display: flex;
-  margin-top: 4px;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  justify-content: flex-end;
 }
 
-.pattern-bar-label {
+.seq-bar {
+  width: 100%;
+  height: 28px;
+  border-radius: 4px;
+  background: var(--gray4);
+  border: 1px solid var(--gray5);
+  transition: background 0.08s, border-color 0.08s, box-shadow 0.08s;
+}
+
+.seq-step-active .seq-bar {
+  background: #22c55e;
+  border-color: #16a34a;
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+}
+
+.seq-label {
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--gray9);
-  text-align: center;
-  overflow: hidden;
+  transition: color 0.08s;
+}
+
+.seq-step-active .seq-label {
+  color: #16a34a;
 }
 
 /* Per-pattern button animations */
