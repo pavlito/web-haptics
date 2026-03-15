@@ -875,13 +875,14 @@ pre code,
   height: 32px;
   border-radius: 3px;
   background: var(--gray8);
-  transition: background 0.06s, box-shadow 0.06s, transform 0.06s;
+  transition: background 0.4s ease-out, box-shadow 0.4s ease-out, transform 0.15s ease;
 }
 
 .seq-tick-active .seq-tick-bar {
   background: #22c55e;
   box-shadow: 0 0 10px rgba(34, 197, 94, 0.5), 0 0 20px rgba(34, 197, 94, 0.2);
-  transform: scaleY(1.15);
+  transform: scaleY(1.2);
+  transition: background 0.02s, box-shadow 0.02s, transform 0.02s;
 }
 
 .seq-tick-label {
@@ -889,30 +890,12 @@ pre code,
   font-size: 10px;
   color: var(--gray9);
   white-space: nowrap;
-  transition: color 0.06s;
+  transition: color 0.4s ease-out;
 }
 
 .seq-tick-active .seq-tick-label {
   color: #16a34a;
-}
-
-.seq-markers {
-  position: relative;
-  height: 14px;
-  margin-top: -8px;
-}
-
-.seq-gap-marker {
-  position: absolute;
-  top: 0;
-  display: flex;
-  justify-content: center;
-}
-
-.seq-gap-label {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  color: var(--gray7);
+  transition: color 0.02s;
 }
 
 /* Per-pattern button animations */
