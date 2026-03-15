@@ -15,11 +15,11 @@ describe("safari haptics", () => {
     expect(checkbox).not.toBeNull();
     expect(checkbox!.type).toBe("checkbox");
     expect(checkbox!.getAttribute("switch")).toBe("");
-    expect(checkbox!.style.display).toBe("none");
+    expect(checkbox!.style.opacity).toBe("0");
 
     const label = document.querySelector<HTMLLabelElement>("label[for='web-haptics-switch']");
     expect(label).not.toBeNull();
-    expect(label!.style.display).toBe("none");
+    expect(label!.style.opacity).toBe("0");
   });
 
   it("reuses existing DOM elements on subsequent triggers", () => {

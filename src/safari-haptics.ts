@@ -11,11 +11,28 @@ function ensureDOM(): void {
   checkbox.type = "checkbox";
   checkbox.id = "web-haptics-switch";
   checkbox.setAttribute("switch", "");
-  checkbox.style.display = "none";
+  // Visually hidden but still in layout — display:none breaks Safari haptic triggering
+  Object.assign(checkbox.style, {
+    position: "fixed",
+    bottom: "0",
+    left: "0",
+    width: "1px",
+    height: "1px",
+    opacity: "0",
+    pointerEvents: "none",
+  });
 
   label = document.createElement("label");
   label.setAttribute("for", "web-haptics-switch");
-  label.style.display = "none";
+  Object.assign(label.style, {
+    position: "fixed",
+    bottom: "0",
+    left: "0",
+    width: "1px",
+    height: "1px",
+    opacity: "0",
+    pointerEvents: "none",
+  });
 
   document.body.appendChild(checkbox);
   document.body.appendChild(label);
