@@ -36,7 +36,7 @@ const appHaptics = createHaptics({
     saveSuccess: [
       { type: "pulse", duration: 20 },
       { type: "gap", duration: 24 },
-      { type: "audio", sound: "soft-click", duration: 80 }
+      { type: "pulse", duration: 80 }
     ]
   }
 });
