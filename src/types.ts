@@ -26,6 +26,7 @@ export type PlaybackResult = {
 export type CapabilityState = {
   haptics: boolean;
   audio: boolean;
+  safari: boolean;
 };
 
 export type PatternRegistry = Record<string, PatternBlock[]>;

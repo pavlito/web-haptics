@@ -4,7 +4,7 @@ import { useState } from "react";
 import { haptics } from "web-haptics";
 
 export function CapabilityDisplay() {
-  const [caps, setCaps] = useState<{ haptics: boolean; audio: boolean } | null>(null);
+  const [caps, setCaps] = useState<{ haptics: boolean; audio: boolean; safari: boolean } | null>(null);
   const [flash, setFlash] = useState(false);
 
   return (
@@ -23,7 +23,7 @@ export function CapabilityDisplay() {
       {caps && (
         <div className="trigger-result">
           <code>
-            haptics: {String(caps.haptics)}, audio: {String(caps.audio)}
+            haptics: {String(caps.haptics)}, audio: {String(caps.audio)}, safari: {String(caps.safari)}
           </code>
         </div>
       )}

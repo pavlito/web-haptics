@@ -110,6 +110,7 @@ describe("haptics runtime", () => {
     expect(haptics.getCapabilities()).toEqual({
       haptics: true,
       audio: true,
+      safari: false,
     });
   });
 
@@ -225,6 +226,7 @@ describe("createHaptics", () => {
     expect(instance.getCapabilities()).toEqual({
       haptics: true,
       audio: true,
+      safari: false,
     });
   });
 });
@@ -294,5 +296,59 @@ describe("dual-mode playback", () => {
 
     expect(result.mode).toBe("haptics");
     expect(vibrate).toHaveBeenCalled();
+  });
+});
+
+describe("Safari detection", () => {
+  it("detects iOS Safari without vibrate API", () => {
+    vi.stubGlobal("navigator", {
+      userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+    });
+    setAudioContext(true);
+
+    const caps = haptics.getCapabilities();
+    expect(caps.safari).toBe(true);
+    expect(caps.haptics).toBe(false);
+  });
+
+  it("detects iPadOS Safari via platform and maxTouchPoints", () => {
+    vi.stubGlobal("navigator", {
+      userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/604.1",
+      platform: "MacIntel",
+      maxTouchPoints: 5,
+    });
+    setAudioContext(true);
+
+    const caps = haptics.getCapabilities();
+    expect(caps.safari).toBe(true);
+  });
+
+  it("does not detect Safari on Android Chrome", () => {
+    vi.stubGlobal("navigator", {
+      userAgent: "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120.0",
+      vibrate: vi.fn(() => true),
+    });
+
+    const caps = haptics.getCapabilities();
+    expect(caps.safari).toBe(false);
+  });
+
+  it("does not detect Safari on desktop macOS Chrome", () => {
+    vi.stubGlobal("navigator", {
+      userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0",
+      platform: "MacIntel",
+      maxTouchPoints: 0,
+    });
+
+    const caps = haptics.getCapabilities();
+    expect(caps.safari).toBe(false);
+  });
+
+  it("returns safari false in SSR", () => {
+    vi.stubGlobal("navigator", undefined);
+    vi.stubGlobal("AudioContext", undefined);
+
+    const caps = haptics.getCapabilities();
+    expect(caps.safari).toBe(false);
   });
 });
