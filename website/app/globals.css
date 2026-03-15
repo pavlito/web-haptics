@@ -870,7 +870,8 @@ pre code,
   gap: 4px;
 }
 
-.seq-tick-bar {
+/* Pulse ticks */
+.seq-tick-pulse .seq-tick-bar {
   width: 6px;
   height: 32px;
   border-radius: 3px;
@@ -885,6 +886,20 @@ pre code,
   transition: background 0.02s, box-shadow 0.02s, transform 0.02s;
 }
 
+/* Gap ticks */
+.seq-tick-gap .seq-tick-bar {
+  width: 2px;
+  height: 14px;
+  border-radius: 1px;
+  background: var(--gray5);
+  margin-top: 9px;
+}
+
+.seq-tick-gap .seq-tick-label {
+  color: var(--gray7);
+}
+
+/* Labels */
 .seq-tick-label {
   font-family: var(--font-mono);
   font-size: 10px;

@@ -21,7 +21,6 @@ export function PatternBar({ pattern, playKey }: PatternBarProps) {
   useEffect(() => {
     if (playKey === 0) return;
 
-    // Flash all bars on — matches the instant haptic/audio feedback
     if (timerRef.current) clearTimeout(timerRef.current);
     setLit(true);
     timerRef.current = setTimeout(() => setLit(false), 400);
@@ -33,7 +32,7 @@ export function PatternBar({ pattern, playKey }: PatternBarProps) {
 
   if (totalDuration === 0) return null;
 
-  // Build positions
+  // Build positions on timeline
   let cursor = 0;
   const items: { type: string; startPct: number; widthPct: number; duration: number; index: number }[] = [];
 
@@ -48,22 +47,20 @@ export function PatternBar({ pattern, playKey }: PatternBarProps) {
     cursor += block.duration;
   });
 
-  const pulses = items.filter((it) => it.type === "pulse");
-
   return (
     <div className="seq">
       <div className="seq-timeline">
         <div className="seq-spine" />
-        {pulses.map((p) => (
+        {items.map((item) => (
           <div
-            key={p.index}
-            className={`seq-tick ${lit ? "seq-tick-active" : ""}`}
+            key={item.index}
+            className={`seq-tick seq-tick-${item.type} ${lit && item.type === "pulse" ? "seq-tick-active" : ""}`}
             style={{
-              left: `${p.startPct + p.widthPct / 2}%`,
+              left: `${item.startPct + item.widthPct / 2}%`,
             }}
           >
             <div className="seq-tick-bar" />
-            <span className="seq-tick-label">{p.duration}ms</span>
+            <span className="seq-tick-label">{item.duration}ms</span>
           </div>
         ))}
       </div>
