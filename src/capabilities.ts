@@ -10,14 +10,13 @@ function getAudioContextConstructor(): typeof AudioContext | undefined {
   return runtime.AudioContext ?? runtime.webkitAudioContext;
 }
 
-function isIOSSafari(): boolean {
+function isIOS(): boolean {
   if (typeof navigator === "undefined") return false;
   const ua = navigator.userAgent;
-  const isIOS =
+  return (
     /iPad|iPhone|iPod/.test(ua) ||
-    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  const isSafari = /Safari/.test(ua) && !/Chrome|CriOS|FxiOS/.test(ua);
-  return isIOS && isSafari;
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+  );
 }
 
 export function getCapabilityState(): CapabilityState {
@@ -26,7 +25,7 @@ export function getCapabilityState(): CapabilityState {
       typeof navigator !== "undefined" &&
       typeof navigator.vibrate === "function",
     audio: Boolean(getAudioContextConstructor()),
-    safari: isIOSSafari(),
+    ios: isIOS(),
   };
 }
 

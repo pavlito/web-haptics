@@ -75,7 +75,7 @@ export function playPattern(pattern: readonly PatternBlock[]): PlaybackResult {
   const capabilities = getCapabilityState();
   const vibrationPattern = toVibrationPattern(pattern);
 
-  if (capabilities.safari && pattern.some((b) => b.type === "pulse" && b.duration >= 5)) {
+  if (capabilities.ios && pattern.some((b) => b.type === "pulse" && b.duration >= 5)) {
     playSafariPattern(pattern);
     try { playAudioClicks(pattern); } catch {}
     return { mode: "haptics" };

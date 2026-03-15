@@ -112,7 +112,7 @@ describe("haptics runtime", () => {
     expect(haptics.getCapabilities()).toEqual({
       haptics: true,
       audio: true,
-      safari: false,
+      ios: false,
     });
   });
 
@@ -228,7 +228,7 @@ describe("createHaptics", () => {
     expect(instance.getCapabilities()).toEqual({
       haptics: true,
       audio: true,
-      safari: false,
+      ios: false,
     });
   });
 });
@@ -301,19 +301,40 @@ describe("dual-mode playback", () => {
   });
 });
 
-describe("Safari detection", () => {
-  it("detects iOS Safari without vibrate API", () => {
+describe("iOS detection", () => {
+  it("detects iOS Safari", () => {
     vi.stubGlobal("navigator", {
       userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
     });
     setAudioContext(true);
 
     const caps = haptics.getCapabilities();
-    expect(caps.safari).toBe(true);
+    expect(caps.ios).toBe(true);
     expect(caps.haptics).toBe(false);
   });
 
-  it("detects iPadOS Safari via platform and maxTouchPoints", () => {
+  it("detects iOS Chrome (CriOS)", () => {
+    vi.stubGlobal("navigator", {
+      userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/120.0 Mobile/15E148 Safari/604.1",
+    });
+    setAudioContext(true);
+
+    const caps = haptics.getCapabilities();
+    expect(caps.ios).toBe(true);
+    expect(caps.haptics).toBe(false);
+  });
+
+  it("detects iOS Firefox (FxiOS)", () => {
+    vi.stubGlobal("navigator", {
+      userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/120.0 Mobile/15E148 Safari/604.1",
+    });
+    setAudioContext(true);
+
+    const caps = haptics.getCapabilities();
+    expect(caps.ios).toBe(true);
+  });
+
+  it("detects iPadOS via platform and maxTouchPoints", () => {
     vi.stubGlobal("navigator", {
       userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/604.1",
       platform: "MacIntel",
@@ -322,20 +343,20 @@ describe("Safari detection", () => {
     setAudioContext(true);
 
     const caps = haptics.getCapabilities();
-    expect(caps.safari).toBe(true);
+    expect(caps.ios).toBe(true);
   });
 
-  it("does not detect Safari on Android Chrome", () => {
+  it("does not detect iOS on Android Chrome", () => {
     vi.stubGlobal("navigator", {
       userAgent: "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120.0",
       vibrate: vi.fn(() => true),
     });
 
     const caps = haptics.getCapabilities();
-    expect(caps.safari).toBe(false);
+    expect(caps.ios).toBe(false);
   });
 
-  it("does not detect Safari on desktop macOS Chrome", () => {
+  it("does not detect iOS on desktop macOS Chrome", () => {
     vi.stubGlobal("navigator", {
       userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0",
       platform: "MacIntel",
@@ -343,20 +364,20 @@ describe("Safari detection", () => {
     });
 
     const caps = haptics.getCapabilities();
-    expect(caps.safari).toBe(false);
+    expect(caps.ios).toBe(false);
   });
 
-  it("returns safari false in SSR", () => {
+  it("returns ios false in SSR", () => {
     vi.stubGlobal("navigator", undefined);
     vi.stubGlobal("AudioContext", undefined);
 
     const caps = haptics.getCapabilities();
-    expect(caps.safari).toBe(false);
+    expect(caps.ios).toBe(false);
   });
 });
 
-describe("Safari haptics", () => {
-  it("uses haptics mode on iOS Safari", () => {
+describe("iOS haptics", () => {
+  it("uses haptics mode on iOS", () => {
     vi.stubGlobal("navigator", {
       userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
     });
