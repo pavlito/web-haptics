@@ -1,9 +1,14 @@
 /**
  * Audio feedback engine for web-haptics.
  *
- * Produces a soft, subtle "tik" sound similar to iOS keyboard feedback.
- * Uses a very short sine wave burst at mid-high frequency with instant
- * attack and rapid exponential decay — quiet, clean, and non-intrusive.
+ * Synthesizes a keyboard-click sound using two layered components:
+ * 1. A short high-pitched "tick" (triangle wave ~1200Hz, 3ms)
+ *    that drops in pitch — provides the initial click transient
+ * 2. A brief low "body" tone (sine wave ~350Hz, 6ms)
+ *    with softer gain — adds warmth so it doesn't sound thin
+ *
+ * The result is a clean, tactile "tik" reminiscent of
+ * a physical keyboard key being pressed.
  */
 
 type AudioEngine = {
@@ -30,24 +35,34 @@ export function getAudioEngine(): AudioEngine | null {
       const level = Math.max(0, Math.min(1, intensity));
       if (level === 0) return;
 
-      const dur = 0.012;
-      const endTime = startTime + dur;
+      // Layer 1: High "tick" — short triangle wave with pitch drop
+      const tick = ctx.createOscillator();
+      tick.type = "triangle";
+      tick.frequency.setValueAtTime(1200 + Math.random() * 100, startTime);
+      tick.frequency.exponentialRampToValueAtTime(600, startTime + 0.003);
 
-      // Sine wave at ~1400Hz — the characteristic iOS keyboard "tik" frequency
-      const osc = ctx.createOscillator();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(1395 + Math.random() * 10, startTime);
+      const tickGain = ctx.createGain();
+      tickGain.gain.setValueAtTime(0.15 * level, startTime);
+      tickGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.003);
 
-      // Soft gain envelope — quiet and gentle
-      const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0.12 * level, startTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, endTime);
+      tick.connect(tickGain);
+      tickGain.connect(ctx.destination);
+      tick.start(startTime);
+      tick.stop(startTime + 0.004);
 
-      osc.connect(gain);
-      gain.connect(ctx.destination);
+      // Layer 2: Low "body" — soft sine for warmth
+      const body = ctx.createOscillator();
+      body.type = "sine";
+      body.frequency.setValueAtTime(350, startTime);
 
-      osc.start(startTime);
-      osc.stop(endTime);
+      const bodyGain = ctx.createGain();
+      bodyGain.gain.setValueAtTime(0.08 * level, startTime);
+      bodyGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.006);
+
+      body.connect(bodyGain);
+      bodyGain.connect(ctx.destination);
+      body.start(startTime);
+      body.stop(startTime + 0.007);
     }
 
     engine = { playTap, context: ctx };
