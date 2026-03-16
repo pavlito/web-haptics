@@ -124,8 +124,9 @@ export default function PlaygroundPage() {
         )}
         {tab === "theremin" && (
           <p>
-            Combines all layers: sub-bass for physical feedback, vibrate loop on
-            Android, and an audible tone that follows your finger. Drag around the pad.
+            Drag your finger around the pad. X axis controls pitch (200-1000 Hz).
+            Y axis controls vibration speed — higher = faster taps (iOS checkbox loop +
+            Android vibrate + sub-bass). All three haptic layers active simultaneously.
           </p>
         )}
       </div>
@@ -291,6 +292,7 @@ function ThereminPanel({ getAudioCtx }: { getAudioCtx: () => AudioContext }) {
     bass: { osc: OscillatorNode; gain: GainNode };
     vibrateStop: { current: boolean };
     vibrateIntensity: { current: number };
+    hapticInterval: { current: number };
   } | null>(null);
   const [coords, setCoords] = useState<{ x: number; y: number } | null>(null);
   const [touching, setTouching] = useState(false);
@@ -317,21 +319,19 @@ function ThereminPanel({ getAudioCtx }: { getAudioCtx: () => AudioContext }) {
 
         const vibrateStop = { current: false };
         const vibrateIntensity = { current: 0 };
+        const hapticInterval = { current: TAP_INTERVAL };
 
-        stateRef.current = { osc, gain, bass, vibrateStop, vibrateIntensity };
+        stateRef.current = { osc, gain, bass, vibrateStop, vibrateIntensity, hapticInterval };
 
         if (typeof navigator.vibrate === "function") {
           startVibrateLoop(vibrateIntensity, vibrateStop);
         }
+
+        // iOS haptic loop — rapid checkbox toggle
+        startIOSHapticLoop(hapticInterval, vibrateStop);
       }
 
-      const freq = 200 + x * 800; // 200-1000 Hz
-      stateRef.current.osc.frequency.value = freq;
-      stateRef.current.gain.gain.value = y * 0.3;
-      stateRef.current.bass.osc.frequency.value = 20 + y * 40;
-      stateRef.current.bass.gain.gain.value = y * 0.9;
-      stateRef.current.vibrateIntensity.current = y;
-
+      updateThereminState(stateRef.current, x, y);
       setCoords({ x, y });
       setTouching(true);
     },
@@ -346,13 +346,7 @@ function ThereminPanel({ getAudioCtx }: { getAudioCtx: () => AudioContext }) {
     const x = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
     const y = Math.max(0, Math.min(1, 1 - (clientY - rect.top) / rect.height));
 
-    const freq = 200 + x * 800;
-    stateRef.current.osc.frequency.value = freq;
-    stateRef.current.gain.gain.value = y * 0.3;
-    stateRef.current.bass.osc.frequency.value = 20 + y * 40;
-    stateRef.current.bass.gain.gain.value = y * 0.9;
-    stateRef.current.vibrateIntensity.current = y;
-
+    updateThereminState(stateRef.current, x, y);
     setCoords({ x, y });
   }, []);
 
@@ -414,8 +408,8 @@ function ThereminPanel({ getAudioCtx }: { getAudioCtx: () => AudioContext }) {
         onTouchCancel={endTouch}
       >
         <div className="theremin-labels">
-          <span className="theremin-label-y">Intensity</span>
-          <span className="theremin-label-x">Frequency</span>
+          <span className="theremin-label-y">Vibration</span>
+          <span className="theremin-label-x">Pitch</span>
         </div>
         {coords && (
           <div
@@ -430,15 +424,59 @@ function ThereminPanel({ getAudioCtx }: { getAudioCtx: () => AudioContext }) {
       {coords && (
         <div className="theremin-readout">
           <span>{Math.round(200 + coords.x * 800)} Hz</span>
-          <span>{Math.round(coords.y * 100)}% intensity</span>
+          <span>{Math.round(1000 / (100 - coords.y * 84))} taps/s</span>
         </div>
       )}
     </div>
   );
 }
 
-// ── iOS Haptic Loop Panel ────────────────────────────────────────
-const TAP_INTERVAL = 26; // ms between checkbox toggles (from ios-vibrator-pro-max)
+// ── Shared helpers ───────────────────────────────────────────────
+const TAP_INTERVAL = 26;
+
+function updateThereminState(
+  state: {
+    osc: OscillatorNode;
+    gain: GainNode;
+    bass: { osc: OscillatorNode; gain: GainNode };
+    vibrateIntensity: { current: number };
+    hapticInterval: { current: number };
+  },
+  x: number,
+  y: number,
+): void {
+  const freq = 200 + x * 800; // X = audible frequency 200-1000 Hz
+  state.osc.frequency.value = freq;
+  state.gain.gain.value = y * 0.3;
+  state.bass.osc.frequency.value = 20 + y * 40;
+  state.bass.gain.gain.value = y * 0.9;
+  state.vibrateIntensity.current = y;
+  // Y = haptic speed: top = fast (16ms), bottom = slow (100ms)
+  state.hapticInterval.current = 100 - y * 84; // 100ms at y=0, 16ms at y=1
+}
+
+function startIOSHapticLoop(
+  intervalRef: { current: number },
+  stopRef: { current: boolean },
+): void {
+  let lastTap = 0;
+  // First tap synchronously (user gesture context)
+  triggerIOSTap();
+  lastTap = performance.now();
+
+  function loop() {
+    if (stopRef.current) return;
+    const now = performance.now();
+    if (now - lastTap >= intervalRef.current) {
+      triggerIOSTap();
+      lastTap = now;
+    }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+}
+
+// ── iOS Haptic Loop Panel ──────────────────────────────────────── // ms between checkbox toggles (from ios-vibrator-pro-max)
 
 function triggerIOSTap(): void {
   if (typeof document === "undefined") return;
