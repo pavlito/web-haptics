@@ -28,11 +28,21 @@ function isIOS(): boolean {
   return false;
 }
 
+function hasVibrationHardware(): boolean {
+  if (typeof navigator === "undefined") return false;
+  if (typeof navigator.vibrate !== "function") return false;
+  // Desktop browsers expose vibrate() but have no motor.
+  // Best heuristic: touch-capable device = likely has vibration motor.
+  if (typeof matchMedia !== "undefined" && matchMedia("(pointer: coarse)").matches) {
+    return true;
+  }
+  // No touch = desktop = no motor
+  return false;
+}
+
 export function getCapabilityState(): CapabilityState {
   return {
-    haptics:
-      typeof navigator !== "undefined" &&
-      typeof navigator.vibrate === "function",
+    haptics: hasVibrationHardware(),
     audio: Boolean(getAudioContextConstructor()),
     ios: isIOS(),
   };

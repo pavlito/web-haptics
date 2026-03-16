@@ -32,6 +32,19 @@ class FakeAudioContext {
 
 function setNavigatorVibrate(vibrate?: (pattern: number[]) => boolean) {
   vi.stubGlobal("navigator", vibrate ? { vibrate } : {});
+  // Simulate touch device when vibrate is available (pointer: coarse = has motor)
+  if (vibrate) {
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: query === "(pointer: coarse)",
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      onchange: null,
+      dispatchEvent: vi.fn(),
+    }));
+  }
 }
 
 function setAudioContext(enabled: boolean) {
