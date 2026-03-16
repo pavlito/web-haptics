@@ -16,7 +16,10 @@ class FakeAudioContext {
       start: vi.fn(),
       stop: vi.fn(),
       type: "sine" as OscillatorType,
-      frequency: { setValueAtTime: vi.fn() },
+      frequency: {
+        setValueAtTime: vi.fn(),
+        exponentialRampToValueAtTime: vi.fn(),
+      },
     };
   }
 
@@ -26,7 +29,6 @@ class FakeAudioContext {
       gain: {
         value: 1,
         setValueAtTime: vi.fn(),
-        linearRampToValueAtTime: vi.fn(),
         exponentialRampToValueAtTime: vi.fn(),
       },
     };
@@ -46,7 +48,7 @@ describe("audio engine", () => {
     expect(engine).not.toBeNull();
   });
 
-  it("playTap creates oscillators for dual-layer sound", async () => {
+  it("playTap creates oscillator with pitch drop", async () => {
     const { getAudioEngine } = await import("../src/audio");
     const engine = getAudioEngine()!;
     engine.playTap(engine.context.currentTime + 0.01);

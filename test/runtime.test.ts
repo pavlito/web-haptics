@@ -19,7 +19,10 @@ class FakeAudioContext {
       start: vi.fn(),
       stop: vi.fn(),
       type: "sine" as OscillatorType,
-      frequency: { setValueAtTime: vi.fn() },
+      frequency: {
+        setValueAtTime: vi.fn(),
+        exponentialRampToValueAtTime: vi.fn(),
+      },
     };
   }
 
@@ -29,7 +32,6 @@ class FakeAudioContext {
       gain: {
         value: 1,
         setValueAtTime: vi.fn(),
-        linearRampToValueAtTime: vi.fn(),
         exponentialRampToValueAtTime: vi.fn(),
       },
     };
