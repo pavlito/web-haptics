@@ -6,32 +6,22 @@ class FakeAudioContext {
   state = "running" as AudioContextState;
   destination = {};
 
-  resume() {
-    return Promise.resolve();
+  resume() { return Promise.resolve(); }
+
+  createBuffer(_ch: number, len: number, sr: number) {
+    return { numberOfChannels: 1, length: len, sampleRate: sr, getChannelData: () => new Float32Array(len) };
   }
 
-  createOscillator() {
-    return {
-      connect: vi.fn(),
-      start: vi.fn(),
-      stop: vi.fn(),
-      type: "sine" as OscillatorType,
-      frequency: {
-        setValueAtTime: vi.fn(),
-        exponentialRampToValueAtTime: vi.fn(),
-      },
-    };
+  createBufferSource() {
+    return { connect: vi.fn(), start: vi.fn(), stop: vi.fn(), buffer: null };
+  }
+
+  createBiquadFilter() {
+    return { connect: vi.fn(), type: "lowpass" as BiquadFilterType, frequency: { setValueAtTime: vi.fn() }, Q: { setValueAtTime: vi.fn() } };
   }
 
   createGain() {
-    return {
-      connect: vi.fn(),
-      gain: {
-        value: 1,
-        setValueAtTime: vi.fn(),
-        exponentialRampToValueAtTime: vi.fn(),
-      },
-    };
+    return { connect: vi.fn(), gain: { value: 1, setValueAtTime: vi.fn() } };
   }
 }
 
@@ -44,11 +34,10 @@ beforeEach(() => {
 describe("audio engine", () => {
   it("creates engine when AudioContext is available", async () => {
     const { getAudioEngine } = await import("../src/audio");
-    const engine = getAudioEngine();
-    expect(engine).not.toBeNull();
+    expect(getAudioEngine()).not.toBeNull();
   });
 
-  it("playTap creates oscillator with pitch drop", async () => {
+  it("playTap produces filtered noise click", async () => {
     const { getAudioEngine } = await import("../src/audio");
     const engine = getAudioEngine()!;
     engine.playTap(engine.context.currentTime + 0.01);
@@ -70,9 +59,7 @@ describe("audio engine", () => {
 
   it("resetAudioEngine closes the AudioContext", async () => {
     const closeSpy = vi.fn(() => Promise.resolve());
-    class CloseableContext extends FakeAudioContext {
-      close = closeSpy;
-    }
+    class CloseableContext extends FakeAudioContext { close = closeSpy; }
     vi.stubGlobal("AudioContext", CloseableContext);
     const { getAudioEngine, resetAudioEngine } = await import("../src/audio");
     getAudioEngine();

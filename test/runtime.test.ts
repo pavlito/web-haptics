@@ -13,28 +13,20 @@ class FakeAudioContext {
     return Promise.resolve();
   }
 
-  createOscillator() {
-    return {
-      connect: vi.fn(),
-      start: vi.fn(),
-      stop: vi.fn(),
-      type: "sine" as OscillatorType,
-      frequency: {
-        setValueAtTime: vi.fn(),
-        exponentialRampToValueAtTime: vi.fn(),
-      },
-    };
+  createBuffer(_ch: number, len: number, sr: number) {
+    return { numberOfChannels: 1, length: len, sampleRate: sr, getChannelData: () => new Float32Array(len) };
+  }
+
+  createBufferSource() {
+    return { connect: vi.fn(), start: vi.fn(), stop: vi.fn(), buffer: null };
+  }
+
+  createBiquadFilter() {
+    return { connect: vi.fn(), type: "lowpass" as BiquadFilterType, frequency: { setValueAtTime: vi.fn() }, Q: { setValueAtTime: vi.fn() } };
   }
 
   createGain() {
-    return {
-      connect: vi.fn(),
-      gain: {
-        value: 1,
-        setValueAtTime: vi.fn(),
-        exponentialRampToValueAtTime: vi.fn(),
-      },
-    };
+    return { connect: vi.fn(), gain: { value: 1, setValueAtTime: vi.fn() } };
   }
 }
 
