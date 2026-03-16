@@ -442,6 +442,27 @@ describe("intensity and PWM", () => {
   });
 });
 
+describe("pattern validation", () => {
+  it("clamps negative duration to 0 — returns none in audio-only mode", () => {
+    setAudioContext(true);
+    const result = haptics.play([{ type: "pulse", duration: -10 }]);
+    expect(result.mode).toBe("none");
+  });
+
+  it("handles NaN duration gracefully", () => {
+    setAudioContext(true);
+    const result = haptics.play([{ type: "pulse", duration: NaN }]);
+    expect(result.mode).toBe("none");
+  });
+
+  it("clamps intensity to 0-1 range", () => {
+    const vibrate = vi.fn(() => true);
+    setNavigatorVibrate(vibrate);
+    haptics.play([{ type: "pulse", duration: 25, intensity: 5 }]);
+    expect(vibrate).toHaveBeenCalledWith([25]);
+  });
+});
+
 describe("iPadOS detection with userAgentData", () => {
   it("detects iPadOS via userAgentData when platform is absent", () => {
     vi.stubGlobal("navigator", {

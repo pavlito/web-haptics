@@ -71,13 +71,28 @@ function playAudioClicks(pattern: readonly PatternBlock[]): boolean {
   return scheduled;
 }
 
-export function playPattern(pattern: readonly PatternBlock[]): PlaybackResult {
-  const capabilities = getCapabilityState();
-  const vibrationPattern = toVibrationPattern(pattern);
+function validatePattern(pattern: readonly PatternBlock[]): PatternBlock[] {
+  return pattern.map((b): PatternBlock => {
+    const duration = Math.max(0, Number.isFinite(b.duration) ? b.duration : 0);
+    if (b.type === "pulse") {
+      return {
+        type: "pulse",
+        duration,
+        intensity: b.intensity != null ? Math.max(0, Math.min(1, b.intensity)) : undefined,
+      };
+    }
+    return { type: "gap", duration };
+  });
+}
 
-  if (capabilities.ios && pattern.some((b) => b.type === "pulse" && b.duration >= 5)) {
-    playSafariPattern(pattern);
-    try { playAudioClicks(pattern); } catch {}
+export function playPattern(pattern: readonly PatternBlock[]): PlaybackResult {
+  const validated = validatePattern(pattern);
+  const capabilities = getCapabilityState();
+  const vibrationPattern = toVibrationPattern(validated);
+
+  if (capabilities.ios && validated.some((b) => b.type === "pulse" && b.duration >= 5)) {
+    playSafariPattern(validated);
+    try { playAudioClicks(validated); } catch {}
     return { mode: "haptics" };
   }
 
@@ -86,13 +101,13 @@ export function playPattern(pattern: readonly PatternBlock[]): PlaybackResult {
     capabilities.haptics &&
     navigator.vibrate(vibrationPattern)
   ) {
-    try { playAudioClicks(pattern); } catch {}
+    try { playAudioClicks(validated); } catch {}
     return { mode: "haptics" };
   }
 
   if (capabilities.audio) {
     try {
-      const played = playAudioClicks(pattern);
+      const played = playAudioClicks(validated);
       return { mode: played ? "audio" : "none" };
     } catch {
       return { mode: "none" };
