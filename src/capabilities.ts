@@ -15,6 +15,9 @@ function isIOS(): boolean {
   const ua = navigator.userAgent;
   if (/iPad|iPhone|iPod/.test(ua)) return true;
   // iPadOS masquerades as macOS — check touch capability
+  // Known limitation: Mac desktops with external touchscreen or Magic Trackpad
+  // may report maxTouchPoints > 1, causing a false positive. This is an accepted
+  // tradeoff — the Safari checkbox hack silently does nothing on macOS (no Taptic Engine).
   if (navigator.maxTouchPoints > 1) {
     // navigator.platform is deprecated but still needed for Safari on iPadOS
     if (navigator.platform === "MacIntel") return true;

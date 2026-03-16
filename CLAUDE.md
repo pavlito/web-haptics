@@ -38,12 +38,18 @@ Design matches Sonner (sonner.emilkowal.ski) exactly:
 import { haptics } from "web-haptics";
 haptics.selection() / .success() / .error() / .toggle() / .snap()
 haptics.play(PatternBlock[])
-haptics.getCapabilities() → { haptics: boolean, audio: boolean }
 // Returns: { mode: "haptics" | "audio" | "none" }
+
+haptics.getCapabilities()
+// Returns: { haptics: boolean, audio: boolean, ios: boolean }
+
+haptics.dispose()
+// Cleans up AudioContext and Safari DOM elements
 
 import { createHaptics } from "web-haptics";
 const h = createHaptics({ patterns: { ... } });
 h.play("name") / h.register("name", [...])
+h.dispose()
 ```
 
 ## Conventions
