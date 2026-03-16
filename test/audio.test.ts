@@ -93,6 +93,18 @@ describe("audio engine", () => {
     expect(getAudioEngine()).not.toBeNull();
   });
 
+  it("resetAudioEngine closes the AudioContext", async () => {
+    const closeSpy = vi.fn(() => Promise.resolve());
+    class CloseableContext extends FakeAudioContext {
+      close = closeSpy;
+    }
+    vi.stubGlobal("AudioContext", CloseableContext);
+    const { getAudioEngine, resetAudioEngine } = await import("../src/audio");
+    getAudioEngine();
+    resetAudioEngine();
+    expect(closeSpy).toHaveBeenCalled();
+  });
+
   it("resumes suspended context on playClick", async () => {
     const resumeSpy = vi.fn(() => Promise.resolve());
     class SuspendedContext extends FakeAudioContext {

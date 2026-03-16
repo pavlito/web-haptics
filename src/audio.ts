@@ -10,12 +10,9 @@ type AudioEngine = {
 };
 
 let engine: AudioEngine | null = null;
-let initializing = false;
 
 export function getAudioEngine(): AudioEngine | null {
   if (engine) return engine;
-  if (initializing) return null;
-  initializing = true;
 
   try {
     const AC = globalThis.AudioContext ?? (globalThis as any).webkitAudioContext;
@@ -66,8 +63,6 @@ export function getAudioEngine(): AudioEngine | null {
     return engine;
   } catch {
     return null;
-  } finally {
-    initializing = false;
   }
 }
 
@@ -76,5 +71,4 @@ export function resetAudioEngine(): void {
     try { engine.context.close().catch(() => {}); } catch {}
   }
   engine = null;
-  initializing = false;
 }

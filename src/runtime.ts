@@ -1,6 +1,8 @@
+import { resetAudioEngine } from "./audio";
 import { getCapabilityState } from "./capabilities";
 import { clonePattern, defaultPatterns } from "./patterns";
 import { playPattern } from "./playback";
+import { destroySafariHaptic } from "./safari-haptics";
 import type {
   CreateHapticsOptions,
   HapticsApi,
@@ -55,6 +57,7 @@ export const haptics: HapticsApi = {
   snap: () => playNamedPattern("snap"),
   play: (pattern) => playPattern(clonePattern(pattern)),
   getCapabilities: () => getCapabilityState(),
+  dispose: () => { resetAudioEngine(); destroySafariHaptic(); },
 };
 
 export function createHaptics(
@@ -68,5 +71,11 @@ export function createHaptics(
       registry.set(name, clonePattern(pattern));
     },
     getCapabilities: () => getCapabilityState(),
+    dispose: () => { resetAudioEngine(); destroySafariHaptic(); },
   };
+}
+
+export function dispose(): void {
+  resetAudioEngine();
+  destroySafariHaptic();
 }
