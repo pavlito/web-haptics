@@ -504,6 +504,7 @@ function IOSHapticLoopPanel() {
   }, [speed]);
 
   const startHold = useCallback(() => {
+    if (!stopRef.current) return; // already running
     stopRef.current = false;
     setActive(true);
     let lastTap = 0;
@@ -545,9 +546,11 @@ function IOSHapticLoopPanel() {
         onMouseDown={startHold}
         onMouseUp={stopHold}
         onMouseLeave={stopHold}
-        onTouchStart={(e) => { e.preventDefault(); startHold(); }}
+        onTouchStart={startHold}
         onTouchEnd={stopHold}
         onTouchCancel={stopHold}
+        onClick={() => { if (!active) startHold(); }}
+        style={{ WebkitUserSelect: "none", userSelect: "none", touchAction: "none" }}
       >
         {active ? "Vibrating..." : "Hold to vibrate"}
       </button>
