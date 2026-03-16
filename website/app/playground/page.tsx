@@ -434,6 +434,20 @@ function ThereminPanel({ getAudioCtx }: { getAudioCtx: () => AudioContext }) {
 // ── Shared helpers ───────────────────────────────────────────────
 const TAP_INTERVAL = 26;
 
+function triggerIOSTap(): void {
+  if (typeof document === "undefined") return;
+  const label = document.createElement("label");
+  label.ariaHidden = "true";
+  label.style.display = "none";
+  const input = document.createElement("input");
+  input.type = "checkbox";
+  input.setAttribute("switch", "");
+  label.appendChild(input);
+  document.head.appendChild(label);
+  label.click();
+  document.head.removeChild(label);
+}
+
 function updateThereminState(
   state: {
     osc: OscillatorNode;
@@ -476,28 +490,14 @@ function startIOSHapticLoop(
   requestAnimationFrame(loop);
 }
 
-// ── iOS Haptic Loop Panel ──────────────────────────────────────── // ms between checkbox toggles (from ios-vibrator-pro-max)
-
-function triggerIOSTap(): void {
-  if (typeof document === "undefined") return;
-  const label = document.createElement("label");
-  label.ariaHidden = "true";
-  label.style.display = "none";
-  const input = document.createElement("input");
-  input.type = "checkbox";
-  input.setAttribute("switch", "");
-  label.appendChild(input);
-  document.head.appendChild(label);
-  label.click();
-  document.head.removeChild(label);
-}
+// ── iOS Haptic Loop Panel ────────────────────────────────────────
 
 function IOSHapticLoopPanel() {
   const [active, setActive] = useState(false);
   const [speed, setSpeed] = useState(TAP_INTERVAL);
   const stopRef = useRef(true);
   const speedRef = useRef(TAP_INTERVAL);
-  const rafRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const rafRef = useRef<number>(0);
 
   useEffect(() => {
     speedRef.current = speed;
@@ -514,19 +514,19 @@ function IOSHapticLoopPanel() {
         triggerIOSTap();
         lastTap = now;
       }
-      rafRef.current = requestAnimationFrame(loop) as unknown as ReturnType<typeof setTimeout>;
+      rafRef.current = requestAnimationFrame(loop);
     }
 
     // First tap synchronously (user gesture context for iOS 18.4+)
     triggerIOSTap();
     lastTap = performance.now();
-    rafRef.current = requestAnimationFrame(loop) as unknown as ReturnType<typeof setTimeout>;
+    rafRef.current = requestAnimationFrame(loop);
   }, []);
 
   const toggle = useCallback(() => {
     if (active) {
       stopRef.current = true;
-      if (rafRef.current) cancelAnimationFrame(rafRef.current as unknown as number);
+      cancelAnimationFrame(rafRef.current);
       setActive(false);
       return;
     }
@@ -537,7 +537,7 @@ function IOSHapticLoopPanel() {
   useEffect(() => {
     return () => {
       stopRef.current = true;
-      if (rafRef.current) cancelAnimationFrame(rafRef.current as unknown as number);
+      cancelAnimationFrame(rafRef.current);
     };
   }, []);
 
