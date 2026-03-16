@@ -503,9 +503,14 @@ function IOSHapticLoopPanel() {
     speedRef.current = speed;
   }, [speed]);
 
-  const startLoop = useCallback(() => {
+  const startHold = useCallback(() => {
     stopRef.current = false;
+    setActive(true);
     let lastTap = 0;
+
+    // First tap synchronously — inside user gesture context
+    triggerIOSTap();
+    lastTap = performance.now();
 
     function loop() {
       if (stopRef.current) return;
@@ -516,23 +521,14 @@ function IOSHapticLoopPanel() {
       }
       rafRef.current = requestAnimationFrame(loop);
     }
-
-    // First tap synchronously (user gesture context for iOS 18.4+)
-    triggerIOSTap();
-    lastTap = performance.now();
     rafRef.current = requestAnimationFrame(loop);
   }, []);
 
-  const toggle = useCallback(() => {
-    if (active) {
-      stopRef.current = true;
-      cancelAnimationFrame(rafRef.current);
-      setActive(false);
-      return;
-    }
-    startLoop();
-    setActive(true);
-  }, [active, startLoop]);
+  const stopHold = useCallback(() => {
+    stopRef.current = true;
+    cancelAnimationFrame(rafRef.current);
+    setActive(false);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -546,9 +542,14 @@ function IOSHapticLoopPanel() {
       <button
         type="button"
         className={`playground-big-btn ${active ? "playground-big-btn-active" : ""}`}
-        onClick={toggle}
+        onMouseDown={startHold}
+        onMouseUp={stopHold}
+        onMouseLeave={stopHold}
+        onTouchStart={(e) => { e.preventDefault(); startHold(); }}
+        onTouchEnd={stopHold}
+        onTouchCancel={stopHold}
       >
-        {active ? "Stop" : "Start iOS Haptic Loop"}
+        {active ? "Vibrating..." : "Hold to vibrate"}
       </button>
 
       <label className="playground-slider">
