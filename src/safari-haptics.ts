@@ -1,53 +1,41 @@
 import type { PatternBlock } from "./types";
 
-let checkbox: HTMLInputElement | null = null;
-let label: HTMLLabelElement | null = null;
+// Optimal interval between haptic taps for pattern simulation (from ios-vibrator-pro-max research)
+const TAP_INTERVAL = 26;
 
-function ensureDOM(): void {
-  if (checkbox && label) return;
-  if (typeof document === "undefined") return;
-
-  checkbox = document.createElement("input");
-  checkbox.type = "checkbox";
-  checkbox.id = "web-haptics-switch";
-  checkbox.setAttribute("switch", "");
-  // Visually hidden but still in layout — display:none breaks Safari haptic triggering
-  Object.assign(checkbox.style, {
-    position: "fixed",
-    bottom: "0",
-    left: "0",
-    width: "1px",
-    height: "1px",
-    opacity: "0",
-    pointerEvents: "none",
-  });
-
-  label = document.createElement("label");
-  label.setAttribute("for", "web-haptics-switch");
-  Object.assign(label.style, {
-    position: "fixed",
-    bottom: "0",
-    left: "0",
-    width: "1px",
-    height: "1px",
-    opacity: "0",
-    pointerEvents: "none",
-  });
-
-  document.body.appendChild(checkbox);
-  document.body.appendChild(label);
-}
-
+/**
+ * Trigger a single iOS Safari haptic tap.
+ *
+ * Creates a temporary <label> containing an <input type="checkbox" switch>,
+ * appends to DOM, clicks the label (which fires Taptic Engine feedback),
+ * then immediately removes. This approach is based on tijnjh/ios-haptics.
+ *
+ * Requirements:
+ *  - iOS 17.4+ Safari (switch attribute support)
+ *  - iOS 18.0+ for haptic feedback on switch toggle
+ *  - iOS 18.4+: must be called within a user gesture handler (click),
+ *    grant expires after ~1 second
+ */
 export function triggerSafariHaptic(): void {
   if (typeof document === "undefined") return;
-  ensureDOM();
-  label?.click();
+
+  const label = document.createElement("label");
+  label.ariaHidden = "true";
+  label.style.display = "none";
+
+  const input = document.createElement("input");
+  input.type = "checkbox";
+  input.setAttribute("switch", "");
+  label.appendChild(input);
+
+  document.head.appendChild(label);
+  label.click();
+  document.head.removeChild(label);
 }
 
 let pendingTimers: ReturnType<typeof setTimeout>[] = [];
 
 export function playSafariPattern(pattern: readonly PatternBlock[]): void {
-  // Cleanup previous timers to prevent accumulation on rapid calls
   for (const id of pendingTimers) clearTimeout(id);
   pendingTimers = [];
 
@@ -63,19 +51,17 @@ export function playSafariPattern(pattern: readonly PatternBlock[]): void {
 
   if (pulseTimes.length === 0) return;
 
-  // First click fires synchronously — required for iOS user gesture context
+  // First click fires synchronously — required for iOS 18.4+ user gesture context
   triggerSafariHaptic();
 
-  // Subsequent clicks fire at their scheduled times
+  // Subsequent clicks use minimum TAP_INTERVAL spacing for reliable haptic triggering
   for (let i = 1; i < pulseTimes.length; i++) {
-    const delay = pulseTimes[i] - pulseTimes[0];
+    const delay = Math.max(pulseTimes[i] - pulseTimes[0], i * TAP_INTERVAL);
     pendingTimers.push(setTimeout(() => triggerSafariHaptic(), delay));
   }
 }
 
 export function destroySafariHaptic(): void {
-  if (checkbox?.parentNode) checkbox.parentNode.removeChild(checkbox);
-  if (label?.parentNode) label.parentNode.removeChild(label);
-  checkbox = null;
-  label = null;
+  for (const id of pendingTimers) clearTimeout(id);
+  pendingTimers = [];
 }

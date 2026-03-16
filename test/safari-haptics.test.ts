@@ -3,50 +3,44 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { triggerSafariHaptic, playSafariPattern, destroySafariHaptic } from "../src/safari-haptics";
 
 beforeEach(() => {
-  document.body.innerHTML = "";
+  document.head.innerHTML = "";
   destroySafariHaptic();
 });
 
 describe("safari haptics", () => {
-  it("injects hidden checkbox and label into DOM on first trigger", () => {
+  it("creates and removes a label+checkbox from DOM on each trigger", () => {
+    // Spy on appendChild/removeChild to verify create-click-remove cycle
+    const appendSpy = vi.spyOn(document.head, "appendChild");
+    const removeSpy = vi.spyOn(document.head, "removeChild");
+
     triggerSafariHaptic();
 
-    const checkbox = document.querySelector<HTMLInputElement>("#web-haptics-switch");
-    expect(checkbox).not.toBeNull();
-    expect(checkbox!.type).toBe("checkbox");
-    expect(checkbox!.getAttribute("switch")).toBe("");
-    expect(checkbox!.style.opacity).toBe("0");
+    expect(appendSpy).toHaveBeenCalledTimes(1);
+    expect(removeSpy).toHaveBeenCalledTimes(1);
 
-    const label = document.querySelector<HTMLLabelElement>("label[for='web-haptics-switch']");
-    expect(label).not.toBeNull();
-    expect(label!.style.opacity).toBe("0");
+    const appended = appendSpy.mock.calls[0][0] as HTMLLabelElement;
+    expect(appended.tagName).toBe("LABEL");
+    expect(appended.style.display).toBe("none");
+
+    const input = appended.querySelector("input");
+    expect(input).not.toBeNull();
+    expect(input!.type).toBe("checkbox");
+    expect(input!.getAttribute("switch")).toBe("");
+
+    appendSpy.mockRestore();
+    removeSpy.mockRestore();
   });
 
-  it("reuses existing DOM elements on subsequent triggers", () => {
+  it("leaves no elements in DOM after trigger", () => {
     triggerSafariHaptic();
     triggerSafariHaptic();
 
-    const checkboxes = document.querySelectorAll("#web-haptics-switch");
-    expect(checkboxes.length).toBe(1);
+    // Elements are created and immediately removed — nothing should remain
+    expect(document.head.querySelectorAll("label").length).toBe(0);
+    expect(document.head.querySelectorAll("input").length).toBe(0);
   });
 
-  it("clicks the label to toggle the checkbox", () => {
-    triggerSafariHaptic();
-
-    const label = document.querySelector<HTMLLabelElement>("label[for='web-haptics-switch']");
-    const clickSpy = vi.spyOn(label!, "click");
-    triggerSafariHaptic();
-    expect(clickSpy).toHaveBeenCalled();
-  });
-
-  it("destroySafariHaptic removes DOM elements", () => {
-    triggerSafariHaptic();
-    destroySafariHaptic();
-
-    expect(document.querySelector("#web-haptics-switch")).toBeNull();
-  });
-
-  it("triggerSafariHaptic is safe in SSR (no document)", () => {
+  it("is safe in SSR (no document)", () => {
     const origDoc = globalThis.document;
     try {
       // @ts-expect-error -- simulating SSR
@@ -60,15 +54,39 @@ describe("safari haptics", () => {
 
 describe("playSafariPattern", () => {
   it("fires first click synchronously for user gesture context", () => {
+    const appendSpy = vi.spyOn(document.head, "appendChild");
+
+    playSafariPattern([
+      { type: "pulse" as const, duration: 20 },
+      { type: "gap" as const, duration: 30 },
+      { type: "pulse" as const, duration: 20 },
+    ]);
+
+    // First click fires synchronously
+    expect(appendSpy).toHaveBeenCalledTimes(1);
+    appendSpy.mockRestore();
+  });
+
+  it("skips gap-only patterns", () => {
+    const appendSpy = vi.spyOn(document.head, "appendChild");
+
+    playSafariPattern([{ type: "gap" as const, duration: 50 }]);
+
+    expect(appendSpy).not.toHaveBeenCalled();
+    appendSpy.mockRestore();
+  });
+
+  it("cleans up pending timers on rapid re-trigger", () => {
     const pattern = [
       { type: "pulse" as const, duration: 20 },
       { type: "gap" as const, duration: 30 },
       { type: "pulse" as const, duration: 20 },
     ];
 
+    // Trigger twice rapidly — should not accumulate timers
+    playSafariPattern(pattern);
     playSafariPattern(pattern);
 
-    const checkbox = document.querySelector<HTMLInputElement>("#web-haptics-switch");
-    expect(checkbox).not.toBeNull();
+    destroySafariHaptic(); // clears timers
   });
 });
