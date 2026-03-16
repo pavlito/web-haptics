@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { haptics } from "web-haptics";
 
 // ── Sub-bass engine ──────────────────────────────────────────────
 function createSubBass(audioCtx: AudioContext) {
@@ -20,14 +19,12 @@ function createSubBass(audioCtx: AudioContext) {
 function startVibrateLoop(
   intensityRef: React.RefObject<number>,
   stopRef: React.RefObject<boolean>,
-) {
+): () => void {
+  let rafId: number;
   function loop() {
     if (stopRef.current) return;
     const intensity = intensityRef.current;
     if (intensity > 0 && typeof navigator.vibrate === "function") {
-      // Vibrate for 200ms — rAF fires every ~16ms so we re-trigger
-      // well before it ends, creating continuous vibration.
-      // For intensity < 1, use PWM: alternate on/off in 20ms cycles.
       if (intensity >= 1) {
         navigator.vibrate(200);
       } else {
@@ -36,9 +33,10 @@ function startVibrateLoop(
         navigator.vibrate([on, off, on, off, on, off, on, off, on, off]);
       }
     }
-    requestAnimationFrame(loop);
+    rafId = requestAnimationFrame(loop);
   }
-  loop();
+  rafId = requestAnimationFrame(loop);
+  return () => cancelAnimationFrame(rafId);
 }
 
 export default function PlaygroundPage() {
@@ -130,16 +128,17 @@ function SubBassPanel({ getAudioCtx }: { getAudioCtx: () => AudioContext }) {
   const toggle = useCallback(() => {
     if (active) {
       if (bassRef.current) {
-        bassRef.current.gain.gain.value = 0;
+        bassRef.current.osc.disconnect();
+        bassRef.current.osc.stop();
+        bassRef.current.gain.disconnect();
+        bassRef.current = null;
       }
       setActive(false);
       return;
     }
 
     const ctx = getAudioCtx();
-    if (!bassRef.current) {
-      bassRef.current = createSubBass(ctx);
-    }
+    bassRef.current = createSubBass(ctx);
     bassRef.current.osc.frequency.value = freq;
     bassRef.current.gain.gain.value = volume;
     setActive(true);
@@ -160,7 +159,10 @@ function SubBassPanel({ getAudioCtx }: { getAudioCtx: () => AudioContext }) {
   useEffect(() => {
     return () => {
       if (bassRef.current) {
-        bassRef.current.gain.gain.value = 0;
+        bassRef.current.osc.disconnect();
+        bassRef.current.osc.stop();
+        bassRef.current.gain.disconnect();
+        bassRef.current = null;
       }
     };
   }, []);
@@ -206,6 +208,7 @@ function VibrateLoopPanel() {
   const [intensity, setIntensity] = useState(1);
   const intensityRef = useRef(1);
   const stopRef = useRef(true);
+  const cancelRef = useRef<(() => void) | null>(null);
   const hasVibrate = typeof navigator !== "undefined" && typeof navigator.vibrate === "function";
 
   useEffect(() => {
@@ -215,19 +218,21 @@ function VibrateLoopPanel() {
   const toggle = useCallback(() => {
     if (active) {
       stopRef.current = true;
+      cancelRef.current?.();
       navigator.vibrate?.(0);
       setActive(false);
       return;
     }
 
     stopRef.current = false;
-    startVibrateLoop(intensityRef, stopRef);
+    cancelRef.current = startVibrateLoop(intensityRef, stopRef);
     setActive(true);
   }, [active]);
 
   useEffect(() => {
     return () => {
       stopRef.current = true;
+      cancelRef.current?.();
       navigator.vibrate?.(0);
     };
   }, []);
@@ -338,8 +343,12 @@ function ThereminPanel({ getAudioCtx }: { getAudioCtx: () => AudioContext }) {
 
   const endTouch = useCallback(() => {
     if (stateRef.current) {
-      stateRef.current.gain.gain.value = 0;
-      stateRef.current.bass.gain.gain.value = 0;
+      stateRef.current.osc.disconnect();
+      stateRef.current.osc.stop();
+      stateRef.current.gain.disconnect();
+      stateRef.current.bass.osc.disconnect();
+      stateRef.current.bass.osc.stop();
+      stateRef.current.bass.gain.disconnect();
       stateRef.current.vibrateStop.current = true;
       navigator.vibrate?.(0);
       stateRef.current = null;
@@ -351,8 +360,12 @@ function ThereminPanel({ getAudioCtx }: { getAudioCtx: () => AudioContext }) {
   useEffect(() => {
     return () => {
       if (stateRef.current) {
-        stateRef.current.gain.gain.value = 0;
-        stateRef.current.bass.gain.gain.value = 0;
+        stateRef.current.osc.disconnect();
+        stateRef.current.osc.stop();
+        stateRef.current.gain.disconnect();
+        stateRef.current.bass.osc.disconnect();
+        stateRef.current.bass.osc.stop();
+        stateRef.current.bass.gain.disconnect();
         stateRef.current.vibrateStop.current = true;
         navigator.vibrate?.(0);
       }
