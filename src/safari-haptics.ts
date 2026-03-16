@@ -3,12 +3,35 @@ import type { PatternBlock } from "./types";
 // Optimal interval between haptic taps for pattern simulation (from ios-vibrator-pro-max research)
 const TAP_INTERVAL = 26;
 
+// Persistent off-screen switch element — kept rendered (not display:none)
+// so iOS Safari produces Taptic Engine feedback on toggle.
+// display:none may prevent haptic triggering on some iOS versions.
+let label: HTMLLabelElement | null = null;
+
+function ensureDOM(): void {
+  if (label) return;
+  if (typeof document === "undefined") return;
+
+  label = document.createElement("label");
+  label.ariaHidden = "true";
+  Object.assign(label.style, {
+    position: "fixed",
+    left: "-9999px",
+    top: "-9999px",
+    opacity: "0.01",
+    pointerEvents: "none",
+  });
+
+  const input = document.createElement("input");
+  input.type = "checkbox";
+  input.setAttribute("switch", "");
+  label.appendChild(input);
+
+  document.body.appendChild(label);
+}
+
 /**
  * Trigger a single iOS Safari haptic tap.
- *
- * Creates a temporary <label> containing an <input type="checkbox" switch>,
- * appends to DOM, clicks the label (which fires Taptic Engine feedback),
- * then immediately removes. This approach is based on tijnjh/ios-haptics.
  *
  * Requirements:
  *  - iOS 17.4+ Safari (switch attribute support)
@@ -18,19 +41,8 @@ const TAP_INTERVAL = 26;
  */
 export function triggerSafariHaptic(): void {
   if (typeof document === "undefined") return;
-
-  const label = document.createElement("label");
-  label.ariaHidden = "true";
-  label.style.display = "none";
-
-  const input = document.createElement("input");
-  input.type = "checkbox";
-  input.setAttribute("switch", "");
-  label.appendChild(input);
-
-  document.head.appendChild(label);
-  label.click();
-  document.head.removeChild(label);
+  ensureDOM();
+  label?.click();
 }
 
 let pendingTimers: ReturnType<typeof setTimeout>[] = [];
@@ -64,4 +76,6 @@ export function playSafariPattern(pattern: readonly PatternBlock[]): void {
 export function destroySafariHaptic(): void {
   for (const id of pendingTimers) clearTimeout(id);
   pendingTimers = [];
+  if (label?.parentNode) label.parentNode.removeChild(label);
+  label = null;
 }

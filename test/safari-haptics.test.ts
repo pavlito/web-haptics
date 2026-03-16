@@ -3,41 +3,48 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { triggerSafariHaptic, playSafariPattern, destroySafariHaptic } from "../src/safari-haptics";
 
 beforeEach(() => {
-  document.head.innerHTML = "";
   destroySafariHaptic();
+  document.body.innerHTML = "";
 });
 
 describe("safari haptics", () => {
-  it("creates and removes a label+checkbox from DOM on each trigger", () => {
-    // Spy on appendChild/removeChild to verify create-click-remove cycle
-    const appendSpy = vi.spyOn(document.head, "appendChild");
-    const removeSpy = vi.spyOn(document.head, "removeChild");
-
+  it("injects off-screen label+checkbox into body on first trigger", () => {
     triggerSafariHaptic();
 
-    expect(appendSpy).toHaveBeenCalledTimes(1);
-    expect(removeSpy).toHaveBeenCalledTimes(1);
+    const label = document.body.querySelector("label");
+    expect(label).not.toBeNull();
+    expect(label!.style.position).toBe("fixed");
+    expect(label!.style.left).toBe("-9999px");
 
-    const appended = appendSpy.mock.calls[0][0] as HTMLLabelElement;
-    expect(appended.tagName).toBe("LABEL");
-    expect(appended.style.display).toBe("none");
-
-    const input = appended.querySelector("input");
+    const input = label!.querySelector("input");
     expect(input).not.toBeNull();
     expect(input!.type).toBe("checkbox");
     expect(input!.getAttribute("switch")).toBe("");
-
-    appendSpy.mockRestore();
-    removeSpy.mockRestore();
   });
 
-  it("leaves no elements in DOM after trigger", () => {
+  it("reuses persistent DOM elements on subsequent triggers", () => {
+    triggerSafariHaptic();
     triggerSafariHaptic();
     triggerSafariHaptic();
 
-    // Elements are created and immediately removed — nothing should remain
-    expect(document.head.querySelectorAll("label").length).toBe(0);
-    expect(document.head.querySelectorAll("input").length).toBe(0);
+    expect(document.body.querySelectorAll("label").length).toBe(1);
+  });
+
+  it("clicks the label on each trigger", () => {
+    triggerSafariHaptic(); // creates elements
+
+    const label = document.body.querySelector("label")!;
+    const clickSpy = vi.spyOn(label, "click");
+    triggerSafariHaptic();
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+    clickSpy.mockRestore();
+  });
+
+  it("destroySafariHaptic removes DOM elements and clears timers", () => {
+    triggerSafariHaptic();
+    destroySafariHaptic();
+
+    expect(document.body.querySelector("label")).toBeNull();
   });
 
   it("is safe in SSR (no document)", () => {
@@ -54,26 +61,21 @@ describe("safari haptics", () => {
 
 describe("playSafariPattern", () => {
   it("fires first click synchronously for user gesture context", () => {
-    const appendSpy = vi.spyOn(document.head, "appendChild");
-
     playSafariPattern([
       { type: "pulse" as const, duration: 20 },
       { type: "gap" as const, duration: 30 },
       { type: "pulse" as const, duration: 20 },
     ]);
 
-    // First click fires synchronously
-    expect(appendSpy).toHaveBeenCalledTimes(1);
-    appendSpy.mockRestore();
+    // Elements should exist (first tap creates them)
+    const label = document.body.querySelector("label");
+    expect(label).not.toBeNull();
   });
 
   it("skips gap-only patterns", () => {
-    const appendSpy = vi.spyOn(document.head, "appendChild");
-
     playSafariPattern([{ type: "gap" as const, duration: 50 }]);
 
-    expect(appendSpy).not.toHaveBeenCalled();
-    appendSpy.mockRestore();
+    expect(document.body.querySelector("label")).toBeNull();
   });
 
   it("cleans up pending timers on rapid re-trigger", () => {
@@ -83,10 +85,9 @@ describe("playSafariPattern", () => {
       { type: "pulse" as const, duration: 20 },
     ];
 
-    // Trigger twice rapidly — should not accumulate timers
     playSafariPattern(pattern);
     playSafariPattern(pattern);
 
-    destroySafariHaptic(); // clears timers
+    destroySafariHaptic();
   });
 });

@@ -434,18 +434,36 @@ function ThereminPanel({ getAudioCtx }: { getAudioCtx: () => AudioContext }) {
 // ── Shared helpers ───────────────────────────────────────────────
 const TAP_INTERVAL = 26;
 
-function triggerIOSTap(): void {
-  if (typeof document === "undefined") return;
-  const label = document.createElement("label");
-  label.ariaHidden = "true";
-  label.style.display = "none";
+// Persistent off-screen switch element — kept rendered (not display:none)
+// so iOS Safari produces Taptic Engine feedback on toggle
+let iosLabel: HTMLLabelElement | null = null;
+
+function ensureIOSSwitch(): HTMLLabelElement | null {
+  if (typeof document === "undefined") return null;
+  if (iosLabel) return iosLabel;
+
+  iosLabel = document.createElement("label");
+  iosLabel.ariaHidden = "true";
+  Object.assign(iosLabel.style, {
+    position: "fixed",
+    left: "-9999px",
+    top: "-9999px",
+    opacity: "0.01",
+    pointerEvents: "none",
+  });
+
   const input = document.createElement("input");
   input.type = "checkbox";
   input.setAttribute("switch", "");
-  label.appendChild(input);
-  document.head.appendChild(label);
-  label.click();
-  document.head.removeChild(label);
+  iosLabel.appendChild(input);
+
+  document.body.appendChild(iosLabel);
+  return iosLabel;
+}
+
+function triggerIOSTap(): void {
+  const label = ensureIOSSwitch();
+  label?.click();
 }
 
 function updateThereminState(
