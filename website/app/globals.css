@@ -629,14 +629,16 @@ pre code,
 
 .docs-main {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 180px;
-  gap: 32px;
+  grid-template-columns: minmax(0, 672px) 180px;
+  justify-content: center;
+  gap: 48px;
   margin-left: 240px;
-  padding: 40px 40px 120px;
+  padding: 40px 48px 120px;
 }
 
 .docs-content {
-  max-width: 680px;
+  max-width: 672px;
+  width: 100%;
 }
 
 .docs-title {
