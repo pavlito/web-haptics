@@ -1,14 +1,10 @@
 /**
  * Audio feedback engine for web-haptics.
  *
- * Synthesizes a keyboard-click sound using two layered components:
- * 1. A short high-pitched "tick" (triangle wave ~1200Hz, 3ms)
- *    that drops in pitch — provides the initial click transient
- * 2. A brief low "body" tone (sine wave ~350Hz, 6ms)
- *    with softer gain — adds warmth so it doesn't sound thin
- *
- * The result is a clean, tactile "tik" reminiscent of
- * a physical keyboard key being pressed.
+ * Synthesizes a crisp mechanical keyboard click using a short
+ * square wave burst. Square waves have that hard, clicky character
+ * that sine/triangle waves lack — more like a physical switch
+ * snapping than an electronic tone.
  */
 
 type AudioEngine = {
@@ -35,34 +31,21 @@ export function getAudioEngine(): AudioEngine | null {
       const level = Math.max(0, Math.min(1, intensity));
       if (level === 0) return;
 
-      // Layer 1: High "tick" — short triangle wave with pitch drop
-      const tick = ctx.createOscillator();
-      tick.type = "triangle";
-      tick.frequency.setValueAtTime(1200 + Math.random() * 100, startTime);
-      tick.frequency.exponentialRampToValueAtTime(600, startTime + 0.003);
+      // Square wave — hard edges = clicky character
+      const osc = ctx.createOscillator();
+      osc.type = "square";
+      osc.frequency.setValueAtTime(1800, startTime);
 
-      const tickGain = ctx.createGain();
-      tickGain.gain.setValueAtTime(0.15 * level, startTime);
-      tickGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.003);
+      // Very sharp envelope — instant on, instant off
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.08 * level, startTime);
+      gain.gain.setValueAtTime(0, startTime + 0.002);
 
-      tick.connect(tickGain);
-      tickGain.connect(ctx.destination);
-      tick.start(startTime);
-      tick.stop(startTime + 0.004);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
 
-      // Layer 2: Low "body" — soft sine for warmth
-      const body = ctx.createOscillator();
-      body.type = "sine";
-      body.frequency.setValueAtTime(350, startTime);
-
-      const bodyGain = ctx.createGain();
-      bodyGain.gain.setValueAtTime(0.08 * level, startTime);
-      bodyGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.006);
-
-      body.connect(bodyGain);
-      bodyGain.connect(ctx.destination);
-      body.start(startTime);
-      body.stop(startTime + 0.007);
+      osc.start(startTime);
+      osc.stop(startTime + 0.003);
     }
 
     engine = { playTap, context: ctx };
