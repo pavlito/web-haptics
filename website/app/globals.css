@@ -1285,6 +1285,17 @@ pre code,
   transition: box-shadow 0.1s;
 }
 
+.playground-speed-presets {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.playground-speed-presets .btn {
+  font-size: 12px;
+  padding: 6px 10px;
+}
+
 .theremin-readout {
   display: flex;
   justify-content: space-between;

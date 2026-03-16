@@ -54,7 +54,7 @@ export default function PlaygroundPage() {
   }
 
   // ── Tab state ──
-  const [tab, setTab] = useState<"subbass" | "vibrate" | "theremin">("subbass");
+  const [tab, setTab] = useState<"ios" | "subbass" | "vibrate" | "theremin">("ios");
 
   return (
     <div className="playground">
@@ -66,6 +66,13 @@ export default function PlaygroundPage() {
       </div>
 
       <div className="playground-tabs">
+        <button
+          type="button"
+          className={`playground-tab ${tab === "ios" ? "playground-tab-active" : ""}`}
+          onClick={() => setTab("ios")}
+        >
+          iOS Loop
+        </button>
         <button
           type="button"
           className={`playground-tab ${tab === "subbass" ? "playground-tab-active" : ""}`}
@@ -89,12 +96,20 @@ export default function PlaygroundPage() {
         </button>
       </div>
 
+      {tab === "ios" && <IOSHapticLoopPanel />}
       {tab === "subbass" && <SubBassPanel getAudioCtx={getAudioCtx} />}
       {tab === "vibrate" && <VibrateLoopPanel />}
       {tab === "theremin" && <ThereminPanel getAudioCtx={getAudioCtx} />}
 
       <div className="playground-info">
         <h3>How it works</h3>
+        {tab === "ios" && (
+          <p>
+            Rapidly toggles a hidden <code>&lt;input type="checkbox" switch&gt;</code> to
+            trigger the Taptic Engine on iOS Safari. Each toggle fires one discrete
+            tap — at ~26ms intervals it feels like continuous vibration. Requires iOS 18+.
+          </p>
+        )}
         {tab === "subbass" && (
           <p>
             Plays a sine wave at 20-60 Hz — below the hearing threshold but the
@@ -418,6 +433,103 @@ function ThereminPanel({ getAudioCtx }: { getAudioCtx: () => AudioContext }) {
           <span>{Math.round(coords.y * 100)}% intensity</span>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── iOS Haptic Loop Panel ────────────────────────────────────────
+const TAP_INTERVAL = 26; // ms between checkbox toggles (from ios-vibrator-pro-max)
+
+function triggerIOSTap(): void {
+  if (typeof document === "undefined") return;
+  const label = document.createElement("label");
+  label.ariaHidden = "true";
+  label.style.display = "none";
+  const input = document.createElement("input");
+  input.type = "checkbox";
+  input.setAttribute("switch", "");
+  label.appendChild(input);
+  document.head.appendChild(label);
+  label.click();
+  document.head.removeChild(label);
+}
+
+function IOSHapticLoopPanel() {
+  const [active, setActive] = useState(false);
+  const [speed, setSpeed] = useState(TAP_INTERVAL);
+  const stopRef = useRef(true);
+  const speedRef = useRef(TAP_INTERVAL);
+  const rafRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  useEffect(() => {
+    speedRef.current = speed;
+  }, [speed]);
+
+  const startLoop = useCallback(() => {
+    stopRef.current = false;
+    let lastTap = 0;
+
+    function loop() {
+      if (stopRef.current) return;
+      const now = performance.now();
+      if (now - lastTap >= speedRef.current) {
+        triggerIOSTap();
+        lastTap = now;
+      }
+      rafRef.current = requestAnimationFrame(loop) as unknown as ReturnType<typeof setTimeout>;
+    }
+
+    // First tap synchronously (user gesture context for iOS 18.4+)
+    triggerIOSTap();
+    lastTap = performance.now();
+    rafRef.current = requestAnimationFrame(loop) as unknown as ReturnType<typeof setTimeout>;
+  }, []);
+
+  const toggle = useCallback(() => {
+    if (active) {
+      stopRef.current = true;
+      if (rafRef.current) cancelAnimationFrame(rafRef.current as unknown as number);
+      setActive(false);
+      return;
+    }
+    startLoop();
+    setActive(true);
+  }, [active, startLoop]);
+
+  useEffect(() => {
+    return () => {
+      stopRef.current = true;
+      if (rafRef.current) cancelAnimationFrame(rafRef.current as unknown as number);
+    };
+  }, []);
+
+  return (
+    <div className="playground-panel">
+      <button
+        type="button"
+        className={`playground-big-btn ${active ? "playground-big-btn-active" : ""}`}
+        onClick={toggle}
+      >
+        {active ? "Stop" : "Start iOS Haptic Loop"}
+      </button>
+
+      <label className="playground-slider">
+        <span>Tap interval: {speed}ms ({Math.round(1000 / speed)} taps/sec)</span>
+        <input
+          type="range"
+          min={16}
+          max={100}
+          value={speed}
+          onChange={(e) => setSpeed(Number(e.target.value))}
+        />
+      </label>
+
+      <div className="playground-speed-presets">
+        <button type="button" className="btn" onClick={() => setSpeed(16)}>Fast (16ms)</button>
+        <button type="button" className="btn" onClick={() => setSpeed(26)}>Default (26ms)</button>
+        <button type="button" className="btn" onClick={() => setSpeed(50)}>Slow (50ms)</button>
+        <button type="button" className="btn" onClick={() => setSpeed(100)}>Pulse (100ms)</button>
+      </div>
     </div>
   );
 }
