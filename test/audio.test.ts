@@ -1,22 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-class FakeAudioBuffer {
-  readonly numberOfChannels = 1;
-  readonly length: number;
-  readonly sampleRate: number;
-  private data: Float32Array;
-
-  constructor(options: { length: number; sampleRate: number }) {
-    this.length = options.length;
-    this.sampleRate = options.sampleRate;
-    this.data = new Float32Array(options.length);
-  }
-
-  getChannelData(_channel: number): Float32Array {
-    return this.data;
-  }
-}
-
 class FakeAudioContext {
   sampleRate = 44100;
   currentTime = 0;
@@ -27,25 +10,13 @@ class FakeAudioContext {
     return Promise.resolve();
   }
 
-  createBuffer(_channels: number, length: number, sampleRate: number) {
-    return new FakeAudioBuffer({ length, sampleRate });
-  }
-
-  createBufferSource() {
+  createOscillator() {
     return {
       connect: vi.fn(),
       start: vi.fn(),
       stop: vi.fn(),
-      buffer: null as FakeAudioBuffer | null,
-    };
-  }
-
-  createBiquadFilter() {
-    return {
-      connect: vi.fn(),
-      type: "bandpass" as BiquadFilterType,
+      type: "sine" as OscillatorType,
       frequency: { setValueAtTime: vi.fn() },
-      Q: { setValueAtTime: vi.fn() },
     };
   }
 
@@ -55,6 +26,8 @@ class FakeAudioContext {
       gain: {
         value: 1,
         setValueAtTime: vi.fn(),
+        linearRampToValueAtTime: vi.fn(),
+        exponentialRampToValueAtTime: vi.fn(),
       },
     };
   }
@@ -73,10 +46,10 @@ describe("audio engine", () => {
     expect(engine).not.toBeNull();
   });
 
-  it("playClick creates buffer source and connects through filter chain", async () => {
+  it("playTap creates oscillators for dual-layer sound", async () => {
     const { getAudioEngine } = await import("../src/audio");
     const engine = getAudioEngine()!;
-    engine.playClick(engine.context.currentTime + 0.01);
+    engine.playTap(engine.context.currentTime + 0.01);
   });
 
   it("returns null when AudioContext is unavailable", async () => {
@@ -105,7 +78,7 @@ describe("audio engine", () => {
     expect(closeSpy).toHaveBeenCalled();
   });
 
-  it("resumes suspended context on playClick", async () => {
+  it("resumes suspended context on playTap", async () => {
     const resumeSpy = vi.fn(() => Promise.resolve());
     class SuspendedContext extends FakeAudioContext {
       state = "suspended" as AudioContextState;
@@ -114,7 +87,7 @@ describe("audio engine", () => {
     vi.stubGlobal("AudioContext", SuspendedContext);
     const { getAudioEngine } = await import("../src/audio");
     const engine = getAudioEngine()!;
-    engine.playClick(0.01);
+    engine.playTap(0.01);
     expect(resumeSpy).toHaveBeenCalled();
   });
 });

@@ -62,7 +62,7 @@ function playAudioClicks(pattern: readonly PatternBlock[]): boolean {
 
   for (const block of pattern) {
     if (block.type === "pulse" && block.duration >= 5) {
-      engine.playClick(startTime + cursorMs / 1000, block.intensity ?? 1);
+      engine.playTap(startTime + cursorMs / 1000, block.intensity ?? 1);
       scheduled = true;
     }
     cursorMs += block.duration;

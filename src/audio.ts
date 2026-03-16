@@ -1,11 +1,21 @@
-const CLICK_DURATION = 0.004;
-const CLICK_GAIN = 0.5;
-const BASE_FREQUENCY = 3000;
-const FILTER_Q = 8;
-const NOISE_DECAY = 25;
+/**
+ * Audio feedback engine for web-haptics.
+ *
+ * Produces short "tap" sounds using dual-oscillator impulse synthesis:
+ * - A high-frequency ping (triangle wave) for the attack transient
+ * - A low-frequency thump (sine wave) for body/warmth
+ * Both have rapid gain envelopes that shape them into a percussive click.
+ */
+
+const TAP_DURATION = 0.006; // 6ms — slightly longer than a pure click for body
+const ATTACK_TIME = 0.001; // 1ms attack
+const PING_FREQ = 4200; // Hz — high transient
+const THUMP_FREQ = 150; // Hz — low body
+const PING_GAIN = 0.35;
+const THUMP_GAIN = 0.2;
 
 type AudioEngine = {
-  playClick(startTime: number, intensity?: number): void;
+  playTap(startTime: number, intensity?: number): void;
   context: AudioContext;
 };
 
@@ -19,18 +29,8 @@ export function getAudioEngine(): AudioEngine | null {
     if (!AC) return null;
 
     const ctx: AudioContext = new AC();
-    const bufferLength = Math.ceil(CLICK_DURATION * ctx.sampleRate);
 
-    function createNoiseBuffer(): AudioBuffer {
-      const buffer = ctx.createBuffer(1, bufferLength, ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferLength; i++) {
-        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / NOISE_DECAY);
-      }
-      return buffer;
-    }
-
-    function playClick(startTime: number, intensity = 1): void {
+    function playTap(startTime: number, intensity = 1): void {
       if (ctx.state === "suspended") {
         ctx.resume().catch(() => undefined);
       }
@@ -38,28 +38,39 @@ export function getAudioEngine(): AudioEngine | null {
       const level = Math.max(0, Math.min(1, intensity));
       if (level === 0) return;
 
-      const buffer = createNoiseBuffer();
-      const source = ctx.createBufferSource();
-      source.buffer = buffer;
+      const endTime = startTime + TAP_DURATION;
 
-      const filter = ctx.createBiquadFilter();
-      filter.type = "bandpass";
-      const jitter = 1 + (Math.random() - 0.5) * 0.3;
-      filter.frequency.setValueAtTime(BASE_FREQUENCY * jitter, startTime);
-      filter.Q.setValueAtTime(FILTER_Q, startTime);
+      // High-frequency ping — provides the sharp attack transient
+      const ping = ctx.createOscillator();
+      ping.type = "triangle";
+      ping.frequency.setValueAtTime(PING_FREQ + (Math.random() - 0.5) * 800, startTime);
 
-      const gain = ctx.createGain();
-      gain.gain.setValueAtTime(CLICK_GAIN * level, startTime);
+      const pingGain = ctx.createGain();
+      pingGain.gain.setValueAtTime(0, startTime);
+      pingGain.gain.linearRampToValueAtTime(PING_GAIN * level, startTime + ATTACK_TIME);
+      pingGain.gain.exponentialRampToValueAtTime(0.001, endTime);
 
-      source.connect(filter);
-      filter.connect(gain);
-      gain.connect(ctx.destination);
+      ping.connect(pingGain);
+      pingGain.connect(ctx.destination);
+      ping.start(startTime);
+      ping.stop(endTime);
 
-      source.start(startTime);
-      source.stop(startTime + CLICK_DURATION);
+      // Low-frequency thump — provides body and weight
+      const thump = ctx.createOscillator();
+      thump.type = "sine";
+      thump.frequency.setValueAtTime(THUMP_FREQ, startTime);
+
+      const thumpGain = ctx.createGain();
+      thumpGain.gain.setValueAtTime(THUMP_GAIN * level, startTime);
+      thumpGain.gain.exponentialRampToValueAtTime(0.001, endTime);
+
+      thump.connect(thumpGain);
+      thumpGain.connect(ctx.destination);
+      thump.start(startTime);
+      thump.stop(endTime);
     }
 
-    engine = { playClick, context: ctx };
+    engine = { playTap, context: ctx };
     return engine;
   } catch {
     return null;
