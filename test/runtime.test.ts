@@ -286,6 +286,18 @@ describe("vibration pattern generation", () => {
 
     expect(vibrate).not.toHaveBeenCalled();
   });
+
+  it("separates consecutive pulses with zero-gap in vibration pattern", () => {
+    const vibrate = vi.fn(() => true);
+    setNavigatorVibrate(vibrate);
+
+    haptics.play([
+      { type: "pulse", duration: 20 },
+      { type: "pulse", duration: 30 },
+    ]);
+
+    expect(vibrate).toHaveBeenCalledWith([20, 0, 30]);
+  });
 });
 
 describe("dual-mode playback", () => {
@@ -395,6 +407,19 @@ describe("iOS haptics", () => {
 
     const result = haptics.play([{ type: "gap", duration: 50 }]);
     expect(result.mode).toBe("none");
+  });
+
+  it("catches audio errors on iOS path without crashing", () => {
+    vi.stubGlobal("navigator", {
+      userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+    });
+    class BrokenAudioContext extends FakeAudioContext {
+      createBuffer() { throw new Error("broken"); }
+    }
+    vi.stubGlobal("AudioContext", BrokenAudioContext);
+
+    const result = haptics.success();
+    expect(result.mode).toBe("haptics");
   });
 });
 
