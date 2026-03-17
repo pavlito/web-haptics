@@ -194,10 +194,10 @@ pre code,
 /* ── Hero Screen (shake + flash) ──────────────────────────────── */
 
 .hero-screen {
-  min-height: 70vh;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding-top: 50px;
   transition: background 0.6s ease-out;
 }
 
