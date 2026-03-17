@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
+import { motion, useSpring, useTransform } from "framer-motion";
 import type { PlaybackMode } from "bzzz";
 import { defaultPatterns, haptics } from "bzzz";
 import { PatternBar } from "../components/pattern-bar";
@@ -17,16 +18,57 @@ const patterns = [
   { name: "snap" as const, label: "Snap", code: "haptics.snap()" },
 ];
 
+// Intensity per pattern — how hard the "impact" hits
+const intensityMap: Record<string, number> = {
+  selection: 0.4,
+  success: 0.7,
+  error: 1.0,
+  toggle: 0.5,
+  snap: 0.8,
+};
+
+function useShakeSpring(mass: number, stiffness: number, damping: number) {
+  const x = useSpring(0, { mass, stiffness, damping });
+  const y = useSpring(0, { mass, stiffness, damping });
+  const rotate = useSpring(0, { mass, stiffness, damping });
+  return { x, y, rotate };
+}
+
 export default function HomePage() {
   const [active, setActive] = useState(patterns[1]);
   const [mode, setMode] = useState<PlaybackMode | null>(null);
-  const [shaking, setShaking] = useState(false);
-  const [flashBg, setFlashBg] = useState("");
   const [animKey, setAnimKey] = useState<string | null>(null);
   const [playKey, setPlayKey] = useState(0);
-  const shakeRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const animRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const flashRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // Different spring configs per element — heavier = more movement, slower settle
+  const logo = useShakeSpring(1.2, 600, 8);      // heavy, wobbly
+  const subtitle = useShakeSpring(0.6, 800, 12);  // light, snappy
+  const buttons = useShakeSpring(0.8, 700, 10);   // medium
+  const bar = useShakeSpring(1.5, 500, 7);        // heaviest, most wobble
+  const codeLine = useShakeSpring(0.5, 900, 14);  // lightest
+  const actions = useShakeSpring(1.0, 600, 9);    // medium-heavy
+
+  const kick = useCallback((name: string) => {
+    const intensity = intensityMap[name] ?? 0.6;
+    const force = 8 * intensity;
+
+    // Random direction for each element — makes it feel organic
+    function jolt(spring: ReturnType<typeof useShakeSpring>, scale: number) {
+      const angle = Math.random() * Math.PI * 2;
+      spring.x.set(Math.cos(angle) * force * scale);
+      spring.y.set(Math.sin(angle) * force * scale);
+      spring.rotate.set((Math.random() - 0.5) * 3 * scale * intensity);
+    }
+
+    // Stagger the kicks slightly
+    jolt(logo, 1.0);
+    setTimeout(() => jolt(buttons, 0.7), 15);
+    setTimeout(() => jolt(bar, 1.2), 30);
+    setTimeout(() => jolt(subtitle, 0.4), 10);
+    setTimeout(() => jolt(codeLine, 0.3), 20);
+    setTimeout(() => jolt(actions, 0.6), 40);
+  }, [logo, buttons, bar, subtitle, codeLine, actions]);
 
   function trigger(p: (typeof patterns)[number]) {
     const result = haptics[p.name]();
@@ -34,31 +76,35 @@ export default function HomePage() {
     setMode(result.mode);
     setPlayKey((k) => k + 1);
 
-    // Screen shake
-    if (shakeRef.current) clearTimeout(shakeRef.current);
-    setShaking(true);
-    shakeRef.current = setTimeout(() => setShaking(false), 400);
+    // Spring physics kick
+    kick(p.name);
 
     // Button animation
     if (animRef.current) clearTimeout(animRef.current);
     setAnimKey(p.name);
     animRef.current = setTimeout(() => setAnimKey(null), 500);
-
-    // Background flash
-    if (flashRef.current) clearTimeout(flashRef.current);
-    setFlashBg(`hero-flash-${p.name}`);
-    flashRef.current = setTimeout(() => setFlashBg(""), 600);
   }
 
   return (
     <>
-      <section className={`hero-screen ${flashBg}`}>
+      <section className="hero-screen">
         <div className="hero-center">
-          <h1 className={shaking ? "shake-heavy" : ""}><img src="/logo.svg" alt="bzzz" height={36} /></h1>
-          <p className={`hero-subtitle ${shaking ? "shake-light" : ""}`}>Haptic feedback for the web.</p>
+          <motion.h1 style={{ x: logo.x, y: logo.y, rotate: logo.rotate }}>
+            <img src="/logo.svg" alt="bzzz" height={36} />
+          </motion.h1>
+
+          <motion.p
+            className="hero-subtitle"
+            style={{ x: subtitle.x, y: subtitle.y }}
+          >
+            Haptic feedback for the web.
+          </motion.p>
 
           <div className="hero-demo">
-            <div className={`hero-buttons-row ${shaking ? "shake-medium" : ""}`}>
+            <motion.div
+              className="hero-buttons-row"
+              style={{ x: buttons.x, y: buttons.y, rotate: buttons.rotate }}
+            >
               {patterns.map((p) => (
                 <button
                   key={p.name}
@@ -69,19 +115,28 @@ export default function HomePage() {
                   {p.label}
                 </button>
               ))}
-            </div>
+            </motion.div>
 
-            <div className={`hero-bar ${shaking ? "shake-heavy-delayed" : ""}`}>
+            <motion.div
+              className="hero-bar"
+              style={{ x: bar.x, y: bar.y, rotate: bar.rotate }}
+            >
               <PatternBar pattern={defaultPatterns[active.name]} playKey={playKey} />
-            </div>
+            </motion.div>
 
-            <div className={`hero-code-line ${shaking ? "shake-light" : ""}`}>
+            <motion.div
+              className="hero-code-line"
+              style={{ x: codeLine.x, y: codeLine.y }}
+            >
               <code>{active.code}</code>
               {mode && <span className={`mode-badge mode-${mode}`}>{mode}</span>}
-            </div>
+            </motion.div>
           </div>
 
-          <div className={`hero-actions ${shaking ? "shake-medium-delayed" : ""}`}>
+          <motion.div
+            className="hero-actions"
+            style={{ x: actions.x, y: actions.y, rotate: actions.rotate }}
+          >
             <Link className="hero-btn hero-btn-primary" href="/docs">
               Docs
             </Link>
@@ -93,7 +148,7 @@ export default function HomePage() {
             >
               GitHub
             </a>
-          </div>
+          </motion.div>
         </div>
       </section>
 
