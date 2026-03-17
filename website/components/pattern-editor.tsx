@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { defaultPatterns, haptics } from "web-haptics";
-import type { PatternBlock } from "web-haptics";
+import { defaultPatterns, haptics } from "bzzz";
+import type { PatternBlock } from "bzzz";
 import { CodeBlock } from "./code-block";
 
 type Pulse = {

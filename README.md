@@ -1,13 +1,13 @@
-# web-haptics
+# bzzz
 
 Haptic feedback for the web. Native vibration + audio fallback.
 
-[![npm](https://img.shields.io/npm/v/web-haptics)](https://www.npmjs.com/package/web-haptics)
-[![bundle size](https://img.shields.io/bundlephobia/minzip/web-haptics)](https://bundlephobia.com/package/web-haptics)
-[![license](https://img.shields.io/npm/l/web-haptics)](./LICENSE)
+[![npm](https://img.shields.io/npm/v/bzzz)](https://www.npmjs.com/package/bzzz)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/bzzz)](https://bundlephobia.com/package/bzzz)
+[![license](https://img.shields.io/npm/l/bzzz)](./LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-ready-blue)](./src/index.ts)
 
-## Why web-haptics?
+## Why bzzz?
 
 - **Zero dependencies** — nothing to audit, nothing to break
 - **Tiny** — under 2KB minified + gzipped
@@ -18,13 +18,13 @@ Haptic feedback for the web. Native vibration + audio fallback.
 ## Install
 
 ```bash
-npm install web-haptics
+npm install bzzz
 ```
 
 ## Quick start
 
 ```typescript
-import { haptics } from "web-haptics";
+import { haptics } from "bzzz";
 
 button.addEventListener("click", () => {
   haptics.success();
@@ -51,7 +51,7 @@ Every call returns `{ mode: "haptics" | "audio" | "none" }` so you always know w
 ## React
 
 ```tsx
-import { useHaptics } from "web-haptics/react";
+import { useHaptics } from "bzzz/react";
 
 function SaveButton() {
   const { success, error } = useHaptics();
@@ -72,7 +72,7 @@ Also available: `useCreateHaptics(options)` for isolated instances that auto-dis
 ## Custom patterns
 
 ```typescript
-import { createHaptics } from "web-haptics";
+import { createHaptics } from "bzzz";
 
 const game = createHaptics({
   patterns: {
@@ -111,11 +111,11 @@ Silent ({ mode: "none" }) → SSR, Node.js
 
 ## Accessibility
 
-web-haptics respects `prefers-reduced-motion: reduce`. When active, all methods silently return `{ mode: "none" }` — no vibration, no audio. Use `setEnabled(false)` for an in-app mute toggle.
+bzzz respects `prefers-reduced-motion: reduce`. When active, all methods silently return `{ mode: "none" }` — no vibration, no audio. Use `setEnabled(false)` for an in-app mute toggle.
 
 ## Documentation
 
-Full docs, interactive demos, and pattern editor at [web-haptics.vercel.app](https://web-haptics.vercel.app)
+Full docs, interactive demos, and pattern editor at [bzzz.vercel.app](https://bzzz.vercel.app)
 
 ## License
 

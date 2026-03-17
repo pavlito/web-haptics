@@ -21,7 +21,7 @@ export function DocsLayout({
       <div className="docs-main">
         <aside className="docs-toc">
           <Link href="/" className="docs-logo">
-            <strong>web-haptics</strong>{" "}
+            <strong>bzzz</strong>{" "}
             <span className="docs-logo-by">by Pavle Lucic</span>
           </Link>
           <div className="docs-toc-title">
@@ -38,7 +38,7 @@ export function DocsLayout({
             </a>
           ))}
           <div className="docs-toc-footer">
-            <a href="https://github.com/pavlito/web-haptics" target="_blank" rel="noopener noreferrer" className="docs-toc-link">
+            <a href="https://github.com/pavlito/bzzz" target="_blank" rel="noopener noreferrer" className="docs-toc-link">
               GitHub
             </a>
           </div>

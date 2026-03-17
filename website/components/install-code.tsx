@@ -10,7 +10,7 @@ export function InstallCode() {
       className="install-code"
       onClick={async () => {
         try {
-          await navigator.clipboard.writeText("npm install web-haptics");
+          await navigator.clipboard.writeText("npm install bzzz");
           setCopied(true);
           setTimeout(() => setCopied(false), 1200);
         } catch {
@@ -18,7 +18,7 @@ export function InstallCode() {
         }
       }}
     >
-      <span>npm install web-haptics</span>
+      <span>npm install bzzz</span>
       <button className="install-copy" type="button" aria-label="Copy">
         {copied ? (
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

@@ -12,17 +12,16 @@ export default function HomePage() {
           <div className="hero-card">haptics.success()</div>
           <div className="hero-card">haptics.error()</div>
         </div>
-        <h1>web-haptics</h1>
+        <h1>bzzz</h1>
         <p>An opinionated haptic feedback library for the web.</p>
         <div className="hero-buttons">
           <Link className="hero-btn hero-btn-primary" href="/docs">
-            Get started
+            Docs
           </Link>
-          <a className="hero-btn hero-btn-secondary" href="https://github.com/pavlito/web-haptics" target="_blank" rel="noopener noreferrer">
+          <a className="hero-btn hero-btn-secondary" href="https://github.com/pavlito/bzzz" target="_blank" rel="noopener noreferrer">
             GitHub
           </a>
         </div>
-        <Link className="hero-link" href="/docs">Documentation</Link>
       </section>
 
       <div className="container content">
@@ -37,7 +36,7 @@ export default function HomePage() {
             Import the singleton and trigger feedback from a user interaction.
           </p>
           <CodeBlock
-            code={`import { haptics } from "web-haptics";
+            code={`import { haptics } from "bzzz";
 
 button.addEventListener("click", () => {
   haptics.success();
@@ -51,7 +50,7 @@ button.addEventListener("click", () => {
           <h2>Custom patterns</h2>
           <p>Create isolated instances with your own pattern registry.</p>
           <CodeBlock
-            code={`import { createHaptics } from "web-haptics";
+            code={`import { createHaptics } from "bzzz";
 
 const appHaptics = createHaptics({
   patterns: {
@@ -74,7 +73,7 @@ appHaptics.play("saveSuccess");`}
             audio. Every call reports what actually happened.
           </p>
           <CodeBlock
-            code={`import { haptics } from "web-haptics";
+            code={`import { haptics } from "bzzz";
 
 const result = haptics.success();
 console.log(result.mode); // "haptics" | "audio" | "none"

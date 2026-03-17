@@ -1,4 +1,4 @@
-# web-haptics
+# bzzz
 
 Haptic feedback library for the web. Native vibration + audio fallback.
 
@@ -35,7 +35,7 @@ Design matches Sonner (sonner.emilkowal.ski) exactly:
 ## API surface
 
 ```ts
-import { haptics } from "web-haptics";
+import { haptics } from "bzzz";
 haptics.selection() / .success() / .error() / .toggle() / .snap()
 haptics.play(PatternBlock[])
 // Returns: { mode: "haptics" | "audio" | "none" }
@@ -46,7 +46,7 @@ haptics.getCapabilities()
 haptics.dispose()
 // Cleans up AudioContext and Safari DOM elements
 
-import { createHaptics } from "web-haptics";
+import { createHaptics } from "bzzz";
 const h = createHaptics({ patterns: { ... } });
 h.play("name") / h.register("name", [...])
 h.dispose()

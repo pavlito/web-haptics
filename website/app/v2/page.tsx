@@ -2,8 +2,8 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
-import type { PlaybackMode } from "web-haptics";
-import { haptics } from "web-haptics";
+import type { PlaybackMode } from "bzzz";
+import { haptics } from "bzzz";
 import { InstallCode } from "../../components/install-code";
 import { CodeBlock } from "../../components/code-block";
 
@@ -77,7 +77,7 @@ export default function V2Page() {
         </div>
 
         <div className="v2-hero-text">
-          <h1>web-haptics</h1>
+          <h1>bzzz</h1>
           <p>Haptic feedback for the web. Native vibration + audio fallback.</p>
 
           <div className="v2-buttons">
@@ -109,7 +109,7 @@ export default function V2Page() {
 
         <section>
           <CodeBlock
-            code={`import { haptics } from "web-haptics";
+            code={`import { haptics } from "bzzz";
 
 button.addEventListener("click", () => {
   haptics.success();
@@ -123,7 +123,7 @@ button.addEventListener("click", () => {
           </Link>
           <a
             className="hero-btn hero-btn-secondary"
-            href="https://github.com/pavlito/web-haptics"
+            href="https://github.com/pavlito/bzzz"
             target="_blank"
             rel="noopener noreferrer"
           >

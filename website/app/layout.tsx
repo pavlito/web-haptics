@@ -6,7 +6,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
-  title: "web-haptics",
+  title: "bzzz",
   description:
     "Web haptics and audio fallback for interaction feedback on the web.",
 };
