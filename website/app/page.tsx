@@ -41,17 +41,17 @@ export default function HomePage() {
   const [playKey, setPlayKey] = useState(0);
   const animRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  // Snappy springs — high stiffness, high damping = fast snap back
-  const logo = useShakeSpring(0.3, 2000, 15);      // heavy hit, fast settle
-  const subtitle = useShakeSpring(0.2, 2500, 20);  // light, very snappy
-  const buttons = useShakeSpring(0.25, 2200, 18);  // medium
-  const bar = useShakeSpring(0.4, 1800, 12);       // heaviest, slight wobble
-  const codeLine = useShakeSpring(0.15, 3000, 25); // lightest, instant
-  const actions = useShakeSpring(0.3, 2000, 16);   // medium
+  // Fast vibration — high stiffness for speed, low damping for oscillation
+  const logo = useShakeSpring(0.3, 1500, 6);       // oscillates 3-4x then stops
+  const subtitle = useShakeSpring(0.2, 1800, 8);   // lighter, fewer oscillations
+  const buttons = useShakeSpring(0.25, 1600, 7);   // medium
+  const bar = useShakeSpring(0.4, 1200, 5);        // heaviest, most wobble
+  const codeLine = useShakeSpring(0.15, 2000, 9);  // light quick jitter
+  const actions = useShakeSpring(0.3, 1400, 6);    // medium
 
   const kick = useCallback((name: string) => {
     const intensity = intensityMap[name] ?? 0.6;
-    const force = 8 * intensity;
+    const force = 14 * intensity;
 
     // Random direction for each element — makes it feel organic
     function jolt(spring: ReturnType<typeof useShakeSpring>, scale: number) {
