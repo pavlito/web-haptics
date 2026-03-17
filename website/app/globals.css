@@ -759,19 +759,31 @@ pre code,
 }
 
 .docs-main {
-  display: grid;
-  grid-template-columns: 180px minmax(0, 672px);
-  justify-content: center;
-  gap: 48px;
-  padding: 40px 48px 120px;
-  overflow-x: hidden;
+  display: block;
+  max-width: 672px;
+  margin: 0 auto;
+  padding: 24px var(--side-padding) 80px;
 }
 
-@media (max-width: 1024px) {
+.docs-toc {
+  display: none;
+}
+
+@media (min-width: 1024px) {
   .docs-main {
-    grid-template-columns: 160px minmax(0, 1fr);
-    gap: 32px;
-    padding: 32px 24px 80px;
+    display: grid;
+    grid-template-columns: 180px minmax(0, 672px);
+    justify-content: center;
+    max-width: none;
+    gap: 48px;
+    padding: 40px 48px 120px;
+  }
+
+  .docs-toc {
+    display: block;
+    position: sticky;
+    top: 40px;
+    align-self: start;
   }
 }
 
@@ -820,12 +832,7 @@ pre code,
   margin-bottom: 8px;
 }
 
-/* TOC left sidebar */
-.docs-toc {
-  position: sticky;
-  top: 40px;
-  align-self: start;
-}
+/* TOC left sidebar — hidden by default, shown at 1024px+ */
 
 .docs-toc-title {
   display: flex;
@@ -1096,15 +1103,6 @@ pre code,
 .btn-anim-snap { animation: btn-snap 0.35s ease; }
 
 @media (max-width: 768px) {
-  .docs-main {
-    grid-template-columns: 1fr;
-    padding: 24px var(--side-padding) 80px;
-  }
-
-  .docs-toc {
-    display: none;
-  }
-
   .docs-title {
     font-size: 28px;
   }
