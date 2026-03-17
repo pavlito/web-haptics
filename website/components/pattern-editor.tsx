@@ -74,7 +74,7 @@ function patternToCode(pulses: Pulse[]): string {
   return `haptics.play([\n${lines.join(",\n")}\n]);`;
 }
 
-const TIMELINE_MS = 400;
+const TIMELINE_MS = 500;
 const BLOCK_WIDTH = 20; // fixed width for all blocks (ms)
 const MIN_GAP = 10;
 
@@ -89,9 +89,8 @@ export function PatternEditor() {
   const [playLit, setPlayLit] = useState(false);
   const timelineRef = useRef<HTMLDivElement>(null);
 
-  const totalDuration = pulses.length > 0
-    ? Math.max(TIMELINE_MS, ...pulses.map((p) => p.position + p.duration + 40))
-    : TIMELINE_MS;
+  // Fixed timeline — no dynamic rescaling so positions stay visually stable
+  const totalDuration = TIMELINE_MS;
 
   const msToPercent = (ms: number) => (ms / totalDuration) * 100;
 
@@ -151,7 +150,7 @@ export function PatternEditor() {
       if (isDragging) return;
       if ((e.target as HTMLElement).closest(".pe-block")) return;
 
-      const ms = Math.round(clientXToMs(e.clientX));
+      const ms = Math.min(TIMELINE_MS - BLOCK_WIDTH, Math.round(clientXToMs(e.clientX)));
       const intensity = clientYToIntensity(e.clientY);
 
       if (hasOverlap(ms, BLOCK_WIDTH)) return;
@@ -186,7 +185,7 @@ export function PatternEditor() {
         const msShift = pxToMs(dx);
 
         if (mode === "move") {
-          const newPos = Math.max(0, Math.round(startPos + msShift));
+          const newPos = Math.max(0, Math.min(TIMELINE_MS - startDur, Math.round(startPos + msShift)));
           setPulses((prev) => {
             const others = prev.filter((p) => p.id !== id);
             const overlaps = others.some((p) =>
