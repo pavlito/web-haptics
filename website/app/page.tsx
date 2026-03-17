@@ -160,7 +160,7 @@ export default function HomePage() {
       >
         <div className="hero-qr-sticker">
           <QRCodeSVG
-            value="https://bzzz.dev"
+            value="https://pavlito.github.io/bzzz"
             size={80}
             bgColor="transparent"
             fgColor="currentColor"
