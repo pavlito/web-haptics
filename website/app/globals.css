@@ -40,7 +40,7 @@ body {
   line-height: 25px;
   font-size: 16px;
   margin: 0;
-  padding: 100px 0 0;
+  padding: 0;
 }
 
 a {
@@ -336,7 +336,8 @@ pre code,
   display: flex;
   flex-direction: column;
   gap: 64px;
-  margin-top: 96px;
+  margin-top: 64px;
+  padding-bottom: 64px;
 }
 
 .content h2 {
