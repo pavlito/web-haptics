@@ -1268,6 +1268,19 @@ pre code,
   overflow: hidden;
 }
 
+/* Dashed center line across timeline */
+.pe-timeline::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1.5px dashed var(--gray4);
+  pointer-events: none;
+  z-index: 0;
+}
+
 /* Time markers along bottom */
 .pe-time-marker {
   position: absolute;
@@ -1316,15 +1329,16 @@ pre code,
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 2px;
-  height: 16px;
-  border-radius: 1px;
-  background: rgba(59, 130, 246, 0.4);
+  width: 3px;
+  height: 18px;
+  border-radius: 2px;
+  background: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);
   transition: background 0.15s;
 }
 
 .pe-handle:hover::after {
-  background: rgba(59, 130, 246, 0.8);
+  background: rgba(59, 130, 246, 0.9);
 }
 
 .pe-handle-left {
