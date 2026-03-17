@@ -1609,6 +1609,32 @@ pre code,
   filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.5));
 }
 
+/* PatternBar inside phone */
+.v2-phone-bar {
+  width: 100%;
+  padding: 0 4px;
+}
+
+.v2-phone-bar .seq {
+  margin-top: 0;
+}
+
+.v2-phone-bar .seq-spine {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.v2-phone-bar .seq-tick-pulse .seq-tick-bar {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.v2-phone-bar .seq-tick-label {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.v2-phone-bar .seq-tick-gap .seq-tick-bar {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .v2-phone-pattern-label {
   font-size: 11px;
   font-weight: 500;
@@ -1714,6 +1740,12 @@ pre code,
 .phone-shake-error     { animation: phone-shake-error 0.65s ease; }
 .phone-shake-toggle    { animation: phone-shake-toggle 0.3s ease; }
 .phone-shake-snap      { animation: phone-shake-snap 0.35s ease; }
+
+.v2-hero-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
 
 /* Right side text */
 .v2-hero-text {
