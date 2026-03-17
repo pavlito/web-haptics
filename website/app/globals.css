@@ -279,6 +279,10 @@ pre code,
   color: var(--gray12);
 }
 
+@media (max-width: 640px) {
+  .hero-qr { display: none; }
+}
+
 .hero-qr-text {
   font-family: var(--font-hand), cursive;
   font-size: 22px;
