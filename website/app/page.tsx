@@ -34,20 +34,6 @@ function useShakeSpring(mass: number, stiffness: number, damping: number) {
   return { x, y, rotate };
 }
 
-// Logo SVG paths — b, z, z, z
-const logoPaths = [
-  "M18.42,14.86c1.39,0,2.81.25,4.24.76,1.43.51,2.83,1.28,4.19,2.33,1.36,1.05,2.48,2.51,3.35,4.4.87,1.88,1.31,4.05,1.31,6.49,0,3.73-.96,6.86-2.88,9.39-1.92,2.53-4.48,4.18-7.69,4.95-3.28.77-6.75.26-10.41-1.52-.7,1.6-1.31,2.69-1.83,3.24l-8.69-3.61c.56-.49,1.11-1.26,1.65-2.3.54-1.05.83-2.25.86-3.61.14-3.1.23-6.01.26-8.71.03-2.7-.03-5.65-.18-8.84-.16-3.19-.29-5.67-.39-7.43-.1-1.76-.31-4.77-.63-9.03L10.99,0c-.13,4.49-.16,9.77-.06,15.87,0,.26,0,.51.01.77,2.76-1.19,5.25-1.78,7.48-1.78ZM19.87,34.38c1.67-.03,3.13-.72,4.37-2.07,1.24-1.34,1.86-2.89,1.86-4.63,0-1.47-.47-2.78-1.41-3.95-.94-1.17-2.16-1.91-3.66-2.22-2.16-.49-4.47-.14-6.91,1.05.1,4.5.21,7.88.31,10.15,2.09,1.15,3.91,1.71,5.44,1.67Z",
-  "M53.81,35.59l1.05,7.64c-9.21.24-17.46.77-24.75,1.57l-.31-7.85h.05c4.4-3.8,8.79-8.65,13.19-14.55-3.87.31-7.33.87-10.36,1.67l-2.51-7.95c2.44-.1,6.22-.3,11.33-.58,5.11-.28,8.89-.49,11.33-.63l1.41,7.06h-.26c-.73.94-5.08,6.04-13.03,15.28,3.31-.24,7.6-.8,12.87-1.67Z",
-  "M78.46,35.59l1.05,7.64c-9.21.24-17.46.77-24.75,1.57l-.31-7.85h.05c4.4-3.8,8.79-8.65,13.19-14.55-3.87.31-7.33.87-10.36,1.67l-2.51-7.95c2.44-.1,6.22-.3,11.33-.58,5.11-.28,8.89-.49,11.33-.63l1.41,7.06h-.26c-.73.94-5.08,6.04-13.03,15.28,3.31-.24,7.6-.8,12.87-1.67Z",
-  "M103.1,35.59l1.05,7.64c-9.21.24-17.46.77-24.75,1.57l-.31-7.85h.05c4.4-3.8,8.79-8.65,13.19-14.55-3.87.31-7.33.87-10.36,1.67l-2.51-7.95c2.44-.1,6.22-.3,11.33-.58,5.11-.28,8.89-.49,11.33-.63l1.41,7.06h-.26c-.73.94-5.08,6.04-13.03,15.28,3.31-.24,7.6-.8,12.87-1.67Z",
-];
-
-const logoViewBoxes = [
-  "0 0 31.5 44.9",
-  "29.5 14 26 31",
-  "54 14 26 31",
-  "78.5 14 26 31",
-];
 
 export default function HomePage() {
   const [active, setActive] = useState(patterns[1]);
@@ -56,14 +42,7 @@ export default function HomePage() {
   const [playKey, setPlayKey] = useState(0);
   const animRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  // Logo letters — each vibrates independently
-  const letterB = useShakeSpring(0.3, 1500, 5);
-  const letterZ1 = useShakeSpring(0.25, 1600, 5);
-  const letterZ2 = useShakeSpring(0.3, 1400, 4);
-  const letterZ3 = useShakeSpring(0.35, 1300, 4);
-  const letterSprings = [letterB, letterZ1, letterZ2, letterZ3];
-
-  // Other elements
+  const logo = useShakeSpring(0.3, 1500, 5);
   const subtitle = useShakeSpring(0.25, 1500, 5);
   const buttons = useShakeSpring(0.3, 1500, 5);
   const bar = useShakeSpring(0.4, 1200, 4);
@@ -82,17 +61,13 @@ export default function HomePage() {
       spring.rotate.set((Math.random() - 0.5) * 4 * intensity);
     }
 
-    // Logo letters — staggered like shockwave hitting each letter
-    letterSprings.forEach((s, i) => {
-      setTimeout(() => jolt(s), i * 12);
-    });
-
+    jolt(logo);
     setTimeout(() => jolt(subtitle), 10);
     setTimeout(() => jolt(buttons), 20);
     setTimeout(() => jolt(bar), 30);
     setTimeout(() => jolt(codeLine), 25);
     setTimeout(() => jolt(actions), 40);
-  }, [letterSprings, buttons, bar, subtitle, codeLine, actions]);
+  }, [logo, buttons, bar, subtitle, codeLine, actions]);
 
   function trigger(p: (typeof patterns)[number]) {
     const result = haptics[p.name]();
@@ -113,27 +88,9 @@ export default function HomePage() {
     <>
       <section className="hero-screen">
         <div className="hero-center">
-          <h1 className="hero-logo" aria-label="bzzz">
-            <motion.span
-              className="hero-letter"
-              style={{ x: letterSprings[0].x, y: letterSprings[0].y, rotate: letterSprings[0].rotate, display: "inline-block" }}
-            >
-              <svg viewBox="0 0 31.5 44.9" height={44} aria-hidden="true">
-                <path d={logoPaths[0]} fill="currentColor" />
-              </svg>
-            </motion.span>
-            {[1, 2, 3].map((i) => (
-              <motion.span
-                key={i}
-                className="hero-letter"
-                style={{ x: letterSprings[i].x, y: letterSprings[i].y, rotate: letterSprings[i].rotate, display: "inline-block" }}
-              >
-                <svg viewBox={logoViewBoxes[i]} height={25} aria-hidden="true">
-                  <path d={logoPaths[i]} fill="currentColor" />
-                </svg>
-              </motion.span>
-            ))}
-          </h1>
+          <motion.h1 style={{ x: logo.x, y: logo.y, rotate: logo.rotate }}>
+            <img src="/logo.svg" alt="bzzz" height={36} />
+          </motion.h1>
 
           <motion.p
             className="hero-subtitle"
