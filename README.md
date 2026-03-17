@@ -104,9 +104,8 @@ Silent ({ mode: "none" }) → SSR, Node.js
 | Platform | Haptics | Audio | How |
 |----------|---------|-------|-----|
 | Android Chrome/Edge/Firefox | Yes | Yes | Vibration API |
-| iOS Safari 18+ | Yes | Yes | Taptic Engine (switch hack) |
-| iOS Safari < 18 | No | Yes | Audio only |
-| iOS Chrome/Firefox | No | Yes | Audio only (WebKit engine) |
+| iOS 18+ (Safari, Chrome, Firefox) | Yes | Yes | Taptic Engine (switch hack) |
+| iOS < 18 (all browsers) | No | Yes | Audio only |
 | Desktop browsers | No | Yes | Audio only |
 | SSR / Node.js | No | No | Silent (`none`) |
 

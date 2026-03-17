@@ -263,9 +263,8 @@ isEnabled();       // → boolean`}
           <tbody>
             <tr><td>Android Chrome / Edge</td><td>Yes</td><td>Yes</td><td>Vibration API</td></tr>
             <tr><td>Android Firefox</td><td>Yes</td><td>Yes</td><td>Vibration API</td></tr>
-            <tr><td>iOS Safari 18+</td><td>Yes</td><td>Yes</td><td>Taptic Engine (switch hack)</td></tr>
-            <tr><td>iOS Safari 17.x</td><td>No</td><td>Yes</td><td>Audio only</td></tr>
-            <tr><td>iOS Chrome / Firefox</td><td>No</td><td>Yes</td><td>Audio only (WebKit engine)</td></tr>
+            <tr><td>iOS 18+ (Safari, Chrome, Firefox)</td><td>Yes</td><td>Yes</td><td>Taptic Engine (switch hack)</td></tr>
+            <tr><td>iOS &lt; 18 (all browsers)</td><td>No</td><td>Yes</td><td>Audio only</td></tr>
             <tr><td>Desktop Chrome / Firefox / Safari</td><td>No</td><td>Yes</td><td>Audio only</td></tr>
             <tr><td>SSR / Node.js</td><td>No</td><td>No</td><td>Silent (<code>none</code>)</td></tr>
           </tbody>
