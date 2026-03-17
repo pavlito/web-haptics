@@ -113,20 +113,23 @@ export default function HomePage() {
     <>
       <section className="hero-screen">
         <div className="hero-center">
-          <h1 className="hero-logo">
-            {logoPaths.map((d, i) => (
+          <h1 className="hero-logo" aria-label="bzzz">
+            <motion.span
+              className="hero-letter"
+              style={{ x: letterSprings[0].x, y: letterSprings[0].y, rotate: letterSprings[0].rotate, display: "inline-block" }}
+            >
+              <svg viewBox="0 0 31.5 44.9" height={44} aria-hidden="true">
+                <path d={logoPaths[0]} fill="currentColor" />
+              </svg>
+            </motion.span>
+            {[1, 2, 3].map((i) => (
               <motion.span
                 key={i}
                 className="hero-letter"
-                style={{
-                  x: letterSprings[i].x,
-                  y: letterSprings[i].y,
-                  rotate: letterSprings[i].rotate,
-                  display: "inline-block",
-                }}
+                style={{ x: letterSprings[i].x, y: letterSprings[i].y, rotate: letterSprings[i].rotate, display: "inline-block" }}
               >
-                <svg viewBox={logoViewBoxes[i]} height={36} aria-hidden="true">
-                  <path d={d} fill="currentColor" />
+                <svg viewBox={logoViewBoxes[i]} height={25} aria-hidden="true">
+                  <path d={logoPaths[i]} fill="currentColor" />
                 </svg>
               </motion.span>
             ))}
