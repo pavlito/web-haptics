@@ -306,25 +306,23 @@ export function PatternEditor() {
 
             {/* Pulse blocks */}
             {pulses.map((p) => {
-              const heightPct = (p.intensity * 75 + 5);
+              const barH = 8 + (32 - 8) * p.intensity; // 8px min, 32px max — same as PatternBar
               return (
                 <div
                   key={p.id}
                   className={`pe-block ${playLit ? "pe-block-lit" : ""}`}
                   style={{
-                    left: `${msToPercent(p.position)}%`,
-                    width: `${msToPercent(p.duration)}%`,
-                    height: `${heightPct}%`,
+                    left: `${msToPercent(p.position + p.duration / 2)}%`,
+                    height: `${barH}px`,
                   }}
                   onMouseDown={(e) => startDrag(e, p.id, "move")}
                   onDoubleClick={(e) => handleDoubleClick(e, p.id)}
                 >
-                  {/* Top edge — intensity */}
                   <div
                     className="pe-handle-top"
                     onMouseDown={(e) => startDrag(e, p.id, "intensity")}
                   />
-                  <span className="pe-block-label">{Math.round(p.intensity * 100)}%</span>
+                  <span className="pe-block-label">{p.duration}ms</span>
                 </div>
               );
             })}
