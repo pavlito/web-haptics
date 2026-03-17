@@ -318,6 +318,23 @@ pre code,
   .hero-qr {
     display: none;
   }
+
+  .pe-timeline {
+    height: 100px;
+  }
+
+  .pe-block {
+    width: 20px;
+  }
+
+  .pe-handle-top {
+    height: 16px;
+    top: -6px;
+  }
+
+  .pe-presets {
+    gap: 4px;
+  }
 }
 
 .hero-qr-text {
@@ -392,9 +409,20 @@ pre code,
     0 4px 4px 0 rgba(0, 0, 0, 0.01), 0 0 0 2px rgba(0, 0, 0, 0.15);
 }
 
+.btn:active {
+  transform: scale(0.97);
+}
+
 .btn-active {
   background: var(--gray3);
   border-color: var(--gray7);
+}
+
+@media (pointer: coarse) {
+  .btn {
+    padding: 10px 14px;
+    min-height: 44px;
+  }
 }
 
 /* Code blocks */
@@ -409,7 +437,7 @@ pre code,
 }
 
 .code-wrapper {
-  overflow: hidden;
+  overflow-x: auto;
   border-radius: 6px;
   border: 1px solid var(--gray3);
   padding: 0;
@@ -443,6 +471,14 @@ pre code,
   opacity: 0;
   color: var(--gray12);
   transition: background 0.2s, opacity 0.2s;
+}
+
+@media (pointer: coarse) {
+  .copy-btn {
+    opacity: 1;
+    width: 36px;
+    height: 36px;
+  }
 }
 
 .copy-btn:hover {
@@ -500,6 +536,17 @@ pre code,
   flex-direction: column-reverse;
   gap: 8px;
   pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .demo-toasts {
+    right: 8px;
+    bottom: 8px;
+    left: 8px;
+  }
+  .demo-toast {
+    width: 100%;
+  }
 }
 
 .demo-toast {
@@ -1042,7 +1089,7 @@ pre code,
 @media (max-width: 900px) {
   .docs-main {
     grid-template-columns: 1fr;
-    padding: 24px 16px 120px;
+    padding: 24px var(--side-padding) 80px;
   }
 
   .docs-toc {
@@ -1051,11 +1098,17 @@ pre code,
 }
 
 /* API table */
+.api-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .api-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
   margin-top: 16px;
+  min-width: 400px;
 }
 
 .api-table th {
@@ -1122,42 +1175,13 @@ pre code,
 }
 
 @media (max-width: 600px) {
-  body {
-    padding-top: 64px;
-  }
-
-  .hero h1 {
-    font-size: 36px;
-  }
-
-  .hero-preview {
-    width: 100%;
-  }
-
-  .hero-buttons {
-    flex-direction: column;
-    width: 100%;
-    padding: 0 var(--side-padding);
-  }
-
-  .hero-btn {
-    width: 100%;
-  }
-
-  .buttons {
-    flex-wrap: nowrap;
-    mask-image: linear-gradient(
-      90deg,
-      transparent,
-      #000 16px,
-      #000 calc(100% - 16px),
-      transparent
-    );
-  }
-
   .footer {
-    margin-top: 128px;
-    padding: 16px 0;
+    margin-top: 80px;
+    padding: 16px var(--side-padding);
+  }
+
+  .not-found {
+    padding-top: 64px;
   }
 }
 

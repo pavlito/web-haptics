@@ -256,7 +256,7 @@ isEnabled();       // → boolean`}
           bzzz adapts to each platform automatically. Native vibration is
           preferred, with audio click fallback when unavailable.
         </p>
-        <table className="api-table">
+        <div className="api-table-wrap"><table className="api-table">
           <thead>
             <tr><th>Platform</th><th>Vibration</th><th>Audio fallback</th></tr>
           </thead>
@@ -267,7 +267,7 @@ isEnabled();       // → boolean`}
             <tr><td>Desktop browsers</td><td>No</td><td>Yes</td></tr>
             <tr><td>Firefox Android</td><td>Yes</td><td>Yes</td></tr>
           </tbody>
-        </table>
+        </table></div>
         <p>
           On desktop, demos will return <code>{`{ mode: "audio" }`}</code> or{" "}
           <code>{`{ mode: "none" }`}</code>. For the full haptic experience,
@@ -282,7 +282,7 @@ isEnabled();       // → boolean`}
 
         <h3>haptics</h3>
         <p>Global singleton. Import from <code>bzzz</code>.</p>
-        <table className="api-table">
+        <div className="api-table-wrap"><table className="api-table">
           <thead>
             <tr><th>Method</th><th>Returns</th><th>Description</th></tr>
           </thead>
@@ -298,32 +298,32 @@ isEnabled();       // → boolean`}
             <tr><td><code>isEnabled()</code></td><td><code>boolean</code></td><td>Check enabled state</td></tr>
             <tr><td><code>dispose()</code></td><td><code>void</code></td><td>Clean up AudioContext and DOM</td></tr>
           </tbody>
-        </table>
+        </table></div>
 
         <h3>createHaptics(options?)</h3>
         <p>Factory for isolated instances. Import from <code>bzzz</code>.</p>
-        <table className="api-table">
+        <div className="api-table-wrap"><table className="api-table">
           <thead>
             <tr><th>Option</th><th>Type</th><th>Default</th></tr>
           </thead>
           <tbody>
             <tr><td><code>patterns</code></td><td><code>Record&lt;string, PatternBlock[]&gt;</code></td><td><code>{"{}"}</code></td></tr>
           </tbody>
-        </table>
+        </table></div>
         <p>Returns a <code>HapticsInstance</code> with <code>play(name | pattern)</code>, <code>register(name, pattern)</code>, <code>getCapabilities()</code>, <code>setEnabled()</code>, <code>isEnabled()</code>, and <code>dispose()</code>.</p>
 
         <h3>PlaybackResult</h3>
-        <table className="api-table">
+        <div className="api-table-wrap"><table className="api-table">
           <thead>
             <tr><th>Prop</th><th>Type</th><th>Description</th></tr>
           </thead>
           <tbody>
             <tr><td><code>mode</code></td><td><code>{'"haptics" | "audio" | "none"'}</code></td><td>Which output was used</td></tr>
           </tbody>
-        </table>
+        </table></div>
 
         <h3>CapabilityState</h3>
-        <table className="api-table">
+        <div className="api-table-wrap"><table className="api-table">
           <thead>
             <tr><th>Prop</th><th>Type</th><th>Description</th></tr>
           </thead>
@@ -333,10 +333,10 @@ isEnabled();       // → boolean`}
             <tr><td><code>ios</code></td><td><code>boolean</code></td><td>iOS / iPadOS device</td></tr>
             <tr><td><code>reducedMotion</code></td><td><code>boolean</code></td><td><code>prefers-reduced-motion</code> active</td></tr>
           </tbody>
-        </table>
+        </table></div>
 
         <h3>PatternBlock</h3>
-        <table className="api-table">
+        <div className="api-table-wrap"><table className="api-table">
           <thead>
             <tr><th>Type</th><th>Fields</th><th>Description</th></tr>
           </thead>
@@ -344,7 +344,7 @@ isEnabled();       // → boolean`}
             <tr><td><code>pulse</code></td><td><code>duration: number, intensity?: number</code></td><td>Vibration. Intensity 0–1 (default: 1.0)</td></tr>
             <tr><td><code>gap</code></td><td><code>duration: number</code></td><td>Pause between pulses</td></tr>
           </tbody>
-        </table>
+        </table></div>
       </section>
 
       {/* ── Pattern Editor ── */}
