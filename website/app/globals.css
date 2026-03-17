@@ -1253,84 +1253,120 @@ pre code,
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 /* Interactive timeline */
 .pe-timeline {
   position: relative;
-  height: 120px;
+  height: 140px;
   cursor: pointer;
   user-select: none;
   border: 1px solid var(--gray3);
   border-radius: 6px;
   background: var(--gray1);
-  background-image:
-    linear-gradient(to bottom, transparent 24%, var(--gray3) 24%, var(--gray3) 24.5%, transparent 24.5%),
-    linear-gradient(to bottom, transparent 49%, var(--gray3) 49%, var(--gray3) 49.5%, transparent 49.5%),
-    linear-gradient(to bottom, transparent 74%, var(--gray3) 74%, var(--gray3) 74.5%, transparent 74.5%);
+  overflow: hidden;
 }
 
-.pe-spine {
+/* Time markers along bottom */
+.pe-time-marker {
   position: absolute;
-  bottom: 18px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--gray4);
-  border-radius: 1px;
-}
-
-/* Intensity labels on left edge */
-.pe-timeline::before {
-  content: "100%\a 75%\a 50%\a 25%";
-  white-space: pre;
-  position: absolute;
-  top: 4px;
-  left: 6px;
+  bottom: 2px;
+  transform: translateX(-50%);
   font-size: 9px;
   color: var(--gray6);
-  line-height: 2.55;
   pointer-events: none;
+  font-variant-numeric: tabular-nums;
 }
 
-.pe-bar {
+/* Pulse blocks — width = duration, height = intensity */
+.pe-block {
   position: absolute;
-  bottom: 20px;
-  width: 18px;
+  bottom: 18px;
+  min-width: 4px;
   border-radius: 6px;
-  background: var(--gray7);
-  transform: translateX(-50%);
-  cursor: move;
-  transition: background 0.15s, box-shadow 0.15s, transform 0.15s;
+  background: rgba(59, 130, 246, 0.18);
+  border: 1.5px solid rgba(59, 130, 246, 0.35);
+  transition: background 0.15s, border-color 0.15s;
+  display: flex;
 }
 
-.pe-bar:hover {
-  background: var(--gray12);
-  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.08);
-  transform: translateX(-50%) scale(1.15);
+.pe-block:hover {
+  background: rgba(59, 130, 246, 0.28);
+  border-color: rgba(59, 130, 246, 0.55);
 }
 
-.pe-bar:active {
-  cursor: grabbing;
-  background: var(--gray12);
-  box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.1);
-  transform: translateX(-50%) scale(1.2);
-  transition: none;
+.pe-block-lit {
+  background: rgba(34, 197, 94, 0.2) !important;
+  border-color: rgba(34, 197, 94, 0.5) !important;
 }
 
-.pe-bar-lit {
-  background: #22c55e;
-  box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
-  transition: background 0.02s, box-shadow 0.02s;
-}
-
-.pe-bar-label {
+/* Left/right resize handles */
+.pe-handle {
   position: absolute;
-  top: 100%;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: ew-resize;
+  z-index: 2;
+}
+
+.pe-handle::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 16px;
+  border-radius: 1px;
+  background: rgba(59, 130, 246, 0.4);
+  transition: background 0.15s;
+}
+
+.pe-handle:hover::after {
+  background: rgba(59, 130, 246, 0.8);
+}
+
+.pe-handle-left {
+  left: -1px;
+}
+
+.pe-handle-left::after {
+  left: 2px;
+}
+
+.pe-handle-right {
+  right: -1px;
+}
+
+.pe-handle-right::after {
+  right: 2px;
+}
+
+/* Top edge — intensity drag */
+.pe-handle-top {
+  position: absolute;
+  top: -2px;
+  left: 8px;
+  right: 8px;
+  height: 6px;
+  cursor: ns-resize;
+  z-index: 2;
+}
+
+/* Center drag area — move */
+.pe-drag-area {
+  flex: 1;
+  cursor: move;
+  min-height: 100%;
+}
+
+/* Duration label */
+.pe-block-label {
+  position: absolute;
+  bottom: -16px;
   left: 50%;
   transform: translateX(-50%);
-  margin-top: 4px;
   font-size: 10px;
   color: var(--gray7);
   white-space: nowrap;
@@ -1340,7 +1376,7 @@ pre code,
 
 .pe-hint {
   position: absolute;
-  top: 50%;
+  top: 45%;
   left: 50%;
   transform: translate(-50%, -50%);
   font-size: 13px;

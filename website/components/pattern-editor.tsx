@@ -74,12 +74,9 @@ function patternToCode(pulses: Pulse[]): string {
   return `haptics.play([\n${lines.join(",\n")}\n]);`;
 }
 
-// Timeline constants
-const TIMELINE_MS = 300;
-const TIMELINE_HEIGHT = 120;
-const MAX_BAR_H = 72;
-const MIN_BAR_H = 12;
-const BAR_WIDTH = 18;
+const TIMELINE_MS = 400;
+const MIN_DURATION = 5;
+const MIN_GAP = 3;
 
 export function PatternEditor() {
   const [pulses, setPulses] = useState<Pulse[]>(
@@ -88,15 +85,57 @@ export function PatternEditor() {
   const [activePreset, setActivePreset] = useState<string>("success");
   const [tab, setTab] = useState<"editor" | "code">("editor");
   const [copied, setCopied] = useState(false);
-  const [dragging, setDragging] = useState<{ id: number; type: "move" | "intensity" } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [playLit, setPlayLit] = useState(false);
   const timelineRef = useRef<HTMLDivElement>(null);
 
   const totalDuration = pulses.length > 0
-    ? Math.max(TIMELINE_MS, ...pulses.map((p) => p.position + p.duration))
+    ? Math.max(TIMELINE_MS, ...pulses.map((p) => p.position + p.duration + 40))
     : TIMELINE_MS;
 
-  const msToX = (ms: number) => (ms / totalDuration) * 100;
+  const msToPercent = (ms: number) => (ms / totalDuration) * 100;
+
+  const pxToMs = useCallback(
+    (px: number) => {
+      const el = timelineRef.current;
+      if (!el) return 0;
+      return (px / el.getBoundingClientRect().width) * totalDuration;
+    },
+    [totalDuration],
+  );
+
+  const clientXToMs = useCallback(
+    (clientX: number) => {
+      const el = timelineRef.current;
+      if (!el) return 0;
+      const rect = el.getBoundingClientRect();
+      return Math.max(0, ((clientX - rect.left) / rect.width) * totalDuration);
+    },
+    [totalDuration],
+  );
+
+  const clientYToIntensity = useCallback(
+    (clientY: number) => {
+      const el = timelineRef.current;
+      if (!el) return 1;
+      const rect = el.getBoundingClientRect();
+      // Bottom 20px is the label area
+      const usableHeight = rect.height - 20;
+      const y = clientY - rect.top;
+      return Math.max(0.05, Math.min(1, 1 - y / usableHeight));
+    },
+    [],
+  );
+
+  const hasOverlap = useCallback(
+    (pos: number, dur: number, excludeId?: number) => {
+      return pulses.some((p) => {
+        if (p.id === excludeId) return false;
+        return pos < p.position + p.duration + MIN_GAP && pos + dur + MIN_GAP > p.position;
+      });
+    },
+    [pulses],
+  );
 
   const loadPreset = useCallback((name: string) => {
     const pattern = defaultPatterns[name as keyof typeof defaultPatterns];
@@ -106,106 +145,96 @@ export function PatternEditor() {
     }
   }, []);
 
-  const getTimelineMs = useCallback(
-    (clientX: number, clientY: number) => {
-      const el = timelineRef.current;
-      if (!el) return null;
-      const rect = el.getBoundingClientRect();
-      const xPct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-      const yPct = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
-      return {
-        ms: Math.round(xPct * totalDuration),
-        intensity: Math.max(0.05, 1 - yPct),
-      };
-    },
-    [totalDuration],
-  );
-
-  // Click empty space → add pulse (only if no overlap)
+  // Click empty space → add block
   const handleTimelineClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (dragging) return;
-      if ((e.target as HTMLElement).closest(".pe-bar")) return;
-      const pos = getTimelineMs(e.clientX, e.clientY);
-      if (!pos) return;
+      if (isDragging) return;
+      if ((e.target as HTMLElement).closest(".pe-block")) return;
 
-      const newDuration = 15;
-      const MIN_GAP = 5;
-      const newStart = pos.ms;
-      const newEnd = newStart + newDuration;
+      const ms = Math.round(clientXToMs(e.clientX));
+      const intensity = clientYToIntensity(e.clientY);
+      const duration = 20;
 
-      // Check overlap with existing pulses (including minimum gap)
-      const overlaps = pulses.some((p) => {
-        const pEnd = p.position + p.duration;
-        return newStart < pEnd + MIN_GAP && newEnd + MIN_GAP > p.position;
-      });
-      if (overlaps) return;
+      if (hasOverlap(ms, duration)) return;
 
       setPulses((prev) => [
         ...prev,
-        { id: makeId(), position: pos.ms, duration: newDuration, intensity: pos.intensity },
+        { id: makeId(), position: ms, duration, intensity: Math.round(intensity * 100) / 100 },
       ]);
       setActivePreset("");
     },
-    [dragging, getTimelineMs, pulses],
+    [isDragging, clientXToMs, clientYToIntensity, hasOverlap],
   );
 
-  // Drag bar for intensity (vertical) or position (horizontal)
-  const handleBarMouseDown = useCallback(
-    (e: React.MouseEvent, id: number) => {
+  // Drag: move block (from center), resize (from edges), intensity (from top)
+  const startDrag = useCallback(
+    (e: React.MouseEvent, id: number, mode: "move" | "resize-left" | "resize-right" | "intensity") => {
       e.preventDefault();
       e.stopPropagation();
-      setDragging({ id, type: "intensity" });
+      setIsDragging(true);
 
-      const startY = e.clientY;
-      const startX = e.clientX;
       const pulse = pulses.find((p) => p.id === id);
       if (!pulse) return;
 
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const startPos = pulse.position;
+      const startDur = pulse.duration;
       const startIntensity = pulse.intensity;
-      const startPosition = pulse.position;
 
       function onMove(ev: MouseEvent) {
-        const dy = startY - ev.clientY;
         const dx = ev.clientX - startX;
+        const msShift = pxToMs(dx);
 
-        // If horizontal movement dominates, move position
-        if (Math.abs(dx) > Math.abs(dy) + 5) {
-          const el = timelineRef.current;
-          if (!el) return;
-          const rect = el.getBoundingClientRect();
-          const msPerPx = totalDuration / rect.width;
-          const newPos = Math.max(0, Math.round(startPosition + dx * msPerPx));
-
-          // Prevent overlap with other pulses
+        if (mode === "move") {
+          const newPos = Math.max(0, Math.round(startPos + msShift));
           setPulses((prev) => {
             const others = prev.filter((p) => p.id !== id);
-            const thisPulse = prev.find((p) => p.id === id);
-            if (!thisPulse) return prev;
-            const newEnd = newPos + thisPulse.duration;
-            const overlaps = others.some((p) => {
-              const pEnd = p.position + p.duration;
-              return newPos < pEnd + 5 && newEnd + 5 > p.position;
-            });
+            const overlaps = others.some((p) =>
+              newPos < p.position + p.duration + MIN_GAP && newPos + startDur + MIN_GAP > p.position,
+            );
             if (overlaps) return prev;
             return prev.map((p) => (p.id === id ? { ...p, position: newPos } : p));
           });
-        } else {
-          // Vertical = intensity
-          const newIntensity = Math.max(0.05, Math.min(1, startIntensity + dy / TIMELINE_HEIGHT));
+        } else if (mode === "resize-right") {
+          const newDur = Math.max(MIN_DURATION, Math.round(startDur + msShift));
+          setPulses((prev) => {
+            const others = prev.filter((p) => p.id !== id);
+            const overlaps = others.some((p) =>
+              startPos < p.position + p.duration + MIN_GAP && startPos + newDur + MIN_GAP > p.position,
+            );
+            if (overlaps) return prev;
+            return prev.map((p) => (p.id === id ? { ...p, duration: newDur } : p));
+          });
+        } else if (mode === "resize-left") {
+          const newPos = Math.max(0, Math.round(startPos + msShift));
+          const newDur = Math.max(MIN_DURATION, Math.round(startDur - msShift));
+          if (newDur < MIN_DURATION) return;
+          setPulses((prev) => {
+            const others = prev.filter((p) => p.id !== id);
+            const overlaps = others.some((p) =>
+              newPos < p.position + p.duration + MIN_GAP && newPos + newDur + MIN_GAP > p.position,
+            );
+            if (overlaps) return prev;
+            return prev.map((p) => (p.id === id ? { ...p, position: newPos, duration: newDur } : p));
+          });
+        } else if (mode === "intensity") {
+          const dy = startY - ev.clientY;
+          const el = timelineRef.current;
+          if (!el) return;
+          const usableHeight = el.getBoundingClientRect().height - 20;
+          const newInt = Math.max(0.05, Math.min(1, startIntensity + dy / usableHeight));
           setPulses((prev) =>
-            prev.map((p) =>
-              p.id === id
-                ? { ...p, intensity: Math.round(newIntensity * 100) / 100 }
-                : p,
-            ),
+            prev.map((p) => (p.id === id ? { ...p, intensity: Math.round(newInt * 100) / 100 } : p)),
           );
         }
+
         setActivePreset("");
       }
 
       function onUp() {
-        setDragging(null);
+        // Delay clearing to prevent click-add after drag
+        requestAnimationFrame(() => setIsDragging(false));
         window.removeEventListener("mousemove", onMove);
         window.removeEventListener("mouseup", onUp);
       }
@@ -213,11 +242,11 @@ export function PatternEditor() {
       window.addEventListener("mousemove", onMove);
       window.addEventListener("mouseup", onUp);
     },
-    [pulses, totalDuration],
+    [pulses, pxToMs],
   );
 
   // Double-click to remove
-  const handleBarDoubleClick = useCallback((e: React.MouseEvent, id: number) => {
+  const handleDoubleClick = useCallback((e: React.MouseEvent, id: number) => {
     e.preventDefault();
     e.stopPropagation();
     setPulses((prev) => prev.filter((p) => p.id !== id));
@@ -287,25 +316,53 @@ export function PatternEditor() {
             className="pe-timeline"
             onClick={handleTimelineClick}
           >
-            {/* Spine line */}
-            <div className="pe-spine" />
+            {/* Time markers */}
+            {Array.from({ length: Math.floor(totalDuration / 50) + 1 }, (_, i) => (
+              <span
+                key={i}
+                className="pe-time-marker"
+                style={{ left: `${msToPercent(i * 50)}%` }}
+              >
+                {i * 50}
+              </span>
+            ))}
 
-            {/* Pulse bars */}
+            {/* Pulse blocks */}
             {pulses.map((p) => {
-              const barH = MIN_BAR_H + (MAX_BAR_H - MIN_BAR_H) * p.intensity;
+              const heightPct = (p.intensity * 75 + 5); // 5% min, 80% max of timeline
               return (
                 <div
                   key={p.id}
-                  className={`pe-bar ${playLit ? "pe-bar-lit" : ""}`}
+                  className={`pe-block ${playLit ? "pe-block-lit" : ""}`}
                   style={{
-                    left: `${msToX(p.position + p.duration / 2)}%`,
-                    height: `${barH}px`,
+                    left: `${msToPercent(p.position)}%`,
+                    width: `${msToPercent(p.duration)}%`,
+                    height: `${heightPct}%`,
                   }}
-                  onMouseDown={(e) => handleBarMouseDown(e, p.id)}
-                  onDoubleClick={(e) => handleBarDoubleClick(e, p.id)}
-                  title={`${p.duration}ms · ${Math.round(p.intensity * 100)}% — drag to adjust, double-click to remove`}
+                  onDoubleClick={(e) => handleDoubleClick(e, p.id)}
                 >
-                  <span className="pe-bar-label">{p.duration}ms</span>
+                  {/* Left resize handle */}
+                  <div
+                    className="pe-handle pe-handle-left"
+                    onMouseDown={(e) => startDrag(e, p.id, "resize-left")}
+                  />
+                  {/* Center drag area — move */}
+                  <div
+                    className="pe-drag-area"
+                    onMouseDown={(e) => startDrag(e, p.id, "move")}
+                  />
+                  {/* Top edge — intensity */}
+                  <div
+                    className="pe-handle-top"
+                    onMouseDown={(e) => startDrag(e, p.id, "intensity")}
+                  />
+                  {/* Right resize handle */}
+                  <div
+                    className="pe-handle pe-handle-right"
+                    onMouseDown={(e) => startDrag(e, p.id, "resize-right")}
+                  />
+                  {/* Label */}
+                  <span className="pe-block-label">{p.duration}ms</span>
                 </div>
               );
             })}
