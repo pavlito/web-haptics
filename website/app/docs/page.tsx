@@ -2,8 +2,9 @@ import { CapabilityDisplay } from "../../components/capability-display";
 import { CodeBlock } from "../../components/code-block";
 import { DocDemo } from "../../components/doc-demo";
 import { DocsLayout } from "../../components/docs-layout";
+import { PatternDemo } from "../../components/pattern-demo";
+import { PatternEditor } from "../../components/pattern-editor";
 import { PlayDemo } from "../../components/play-demo";
-import { TriggerButton } from "../../components/trigger-button";
 
 export const metadata = {
   title: "Documentation — web-haptics",
@@ -17,28 +18,15 @@ export default function DocsPage() {
       sections={[
         { id: "installation", label: "Installation" },
         { id: "basic-usage", label: "Basic usage" },
-        { id: "trigger-from-interaction", label: "Trigger from interaction" },
-        { id: "selection", label: "selection()" },
-        { id: "success", label: "success()" },
-        { id: "error", label: "error()" },
-        { id: "toggle", label: "toggle()" },
-        { id: "snap", label: "snap()" },
+        { id: "patterns", label: "Patterns" },
         { id: "play", label: "play()" },
-        { id: "get-capabilities", label: "getCapabilities()" },
-        { id: "set-enabled", label: "setEnabled()" },
+        { id: "capabilities", label: "Capabilities & fallbacks" },
+        { id: "configuration", label: "Configuration" },
         { id: "create-haptics", label: "createHaptics()" },
-        { id: "register", label: "register()" },
         { id: "react", label: "React" },
-        { id: "react-setup", label: "React setup" },
-        { id: "use-haptics", label: "useHaptics" },
-        { id: "use-create-haptics", label: "useCreateHaptics" },
-        { id: "enable-disable", label: "Enable / Disable" },
-        { id: "capability-checks", label: "Capability checks" },
-        { id: "mode-reporting", label: "Mode reporting" },
-        { id: "reduced-motion", label: "Reduced motion" },
-        { id: "user-activation", label: "User activation" },
+        { id: "browser-support", label: "Browser support" },
         { id: "api-reference", label: "API Reference" },
-        { id: "accessibility", label: "Accessibility" },
+        { id: "pattern-editor", label: "Pattern Editor" },
       ]}
     >
       {/* ── Getting Started ── */}
@@ -51,79 +39,47 @@ export default function DocsPage() {
 
       <section>
         <h2 id="basic-usage">Basic usage</h2>
-        <p>Import the <code>haptics</code> singleton and call a named pattern.</p>
+        <p>
+          Import the <code>haptics</code> singleton and call a named pattern.
+          Always trigger from a user interaction — browsers may reject playback
+          outside click, tap, or keyboard handlers.
+        </p>
         <DocDemo
           code={`import { haptics } from "web-haptics";
 
-haptics.success();`}
-        >
-          <TriggerButton method="success" />
-        </DocDemo>
-      </section>
-
-      <section>
-        <h2 id="trigger-from-interaction">Trigger from interaction</h2>
-        <p>
-          Browsers may reject haptic playback outside user-initiated events.
-          Always trigger from a click, tap, or keyboard handler.
-        </p>
-        <DocDemo
-          code={`button.addEventListener("click", () => {
+button.addEventListener("click", () => {
   haptics.success();
+  // → { mode: "haptics" | "audio" | "none" }
 });`}
         >
-          <TriggerButton method="success" />
+          <PlayDemo />
         </DocDemo>
       </section>
 
-      {/* ── haptics singleton ── */}
-
-      <section>
-        <h2 id="selection">selection()</h2>
-        <p>Quick tap confirmation for selections.</p>
-        <DocDemo code={`haptics.selection();`}>
-          <TriggerButton method="selection" />
-        </DocDemo>
-      </section>
+      {/* ── Patterns ── */}
 
       <section>
-        <h2 id="success">success()</h2>
-        <p>Positive completion feedback.</p>
-        <DocDemo code={`haptics.success();`}>
-          <TriggerButton method="success" />
-        </DocDemo>
+        <h2 id="patterns">Patterns</h2>
+        <p>
+          Five built-in patterns for common interaction feedback.
+          Each returns a <code>PlaybackResult</code> with the output mode.
+        </p>
+        <PatternDemo />
       </section>
 
-      <section>
-        <h2 id="error">error()</h2>
-        <p>Warning or failure response.</p>
-        <DocDemo code={`haptics.error();`}>
-          <TriggerButton method="error" />
-        </DocDemo>
-      </section>
-
-      <section>
-        <h2 id="toggle">toggle()</h2>
-        <p>State change feedback.</p>
-        <DocDemo code={`haptics.toggle();`}>
-          <TriggerButton method="toggle" />
-        </DocDemo>
-      </section>
-
-      <section>
-        <h2 id="snap">snap()</h2>
-        <p>Crisp spatial interaction cue.</p>
-        <DocDemo code={`haptics.snap();`}>
-          <TriggerButton method="snap" />
-        </DocDemo>
-      </section>
+      {/* ── play() ── */}
 
       <section>
         <h2 id="play">play()</h2>
-        <p>Play a raw <code>PatternBlock[]</code> array when you need direct control.</p>
+        <p>
+          Play a raw <code>PatternBlock[]</code> array when you need direct
+          control. Each block is a <code>pulse</code> (vibration) or{" "}
+          <code>gap</code> (pause). Intensity ranges from 0 to 1 (default: 1.0)
+          — lower values produce softer feedback.
+        </p>
         <DocDemo
           code={`haptics.play([
-  { type: "pulse", duration: 20 },
+  { type: "pulse", duration: 20, intensity: 0.5 },
   { type: "gap", duration: 24 },
   { type: "pulse", duration: 60 }
 ]);`}
@@ -132,37 +88,63 @@ haptics.success();`}
         </DocDemo>
       </section>
 
+      {/* ── Capabilities & Fallbacks ── */}
+
       <section>
-        <h2 id="get-capabilities">getCapabilities()</h2>
-        <p>Check what the current device supports. Returns a <code>CapabilityState</code> object.</p>
+        <h2 id="capabilities">Capabilities & fallbacks</h2>
+        <p>
+          The runtime uses native haptics when available and falls back to audio.
+          Every call returns a <code>PlaybackResult</code> reporting what
+          actually happened.
+        </p>
         <DocDemo
           code={`const caps = haptics.getCapabilities();
-// { haptics: boolean, audio: boolean, ios: boolean, reducedMotion: boolean }`}
+// { haptics: boolean, audio: boolean, ios: boolean, reducedMotion: boolean }
+
+const result = haptics.success();
+console.log(result.mode); // "haptics" | "audio" | "none"`}
         >
           <CapabilityDisplay />
         </DocDemo>
+        <p>
+          When the user has <code>prefers-reduced-motion: reduce</code> enabled,
+          all feedback is automatically suppressed and methods return{" "}
+          <code>{`{ mode: "none" }`}</code>. Browsers may also reject playback
+          outside user-triggered interactions — that is why mode reporting matters.
+        </p>
       </section>
 
+      {/* ── Configuration ── */}
+
       <section>
-        <h2 id="set-enabled">setEnabled()</h2>
+        <h2 id="configuration">Configuration</h2>
         <p>
           Globally enable or disable haptic feedback. When disabled, all
           methods return <code>{`{ mode: "none" }`}</code>.
         </p>
         <CodeBlock
           code={`haptics.setEnabled(false); // mute all feedback
-haptics.success(); // → { mode: "none" }
+haptics.isEnabled();       // → false
 
-haptics.setEnabled(true); // resume
-haptics.success(); // → { mode: "haptics" }`}
+haptics.setEnabled(true);  // resume
+haptics.success();         // → { mode: "haptics" }`}
         />
+        <p>
+          Call <code>dispose()</code> to clean up the AudioContext and any
+          internal DOM elements. Safe to call multiple times.
+        </p>
+        <CodeBlock code={`haptics.dispose();`} />
       </section>
 
       {/* ── createHaptics ── */}
 
       <section>
         <h2 id="create-haptics">createHaptics()</h2>
-        <p>Create isolated instances with custom pattern registries.</p>
+        <p>
+          Create isolated instances with custom pattern registries. Each
+          instance has its own enabled state and does not affect the global
+          singleton.
+        </p>
         <DocDemo
           code={`import { createHaptics } from "web-haptics";
 
@@ -178,47 +160,37 @@ const appHaptics = createHaptics({
 
 appHaptics.play("saveSuccess");`}
         >
-          <TriggerButton method="success" />
+          <PlayDemo />
         </DocDemo>
-      </section>
-
-      <section>
-        <h2 id="register">register()</h2>
-        <p>Add patterns after creation.</p>
-        <DocDemo
+        <p>
+          Add patterns after creation with <code>register()</code>. Call{" "}
+          <code>dispose()</code> when the instance is no longer needed.
+        </p>
+        <CodeBlock
           code={`appHaptics.register("delete", [
   { type: "pulse", duration: 40 },
   { type: "gap", duration: 18 },
   { type: "pulse", duration: 44 }
 ]);
 
-appHaptics.play("delete");`}
-        >
-          <TriggerButton method="error" />
-        </DocDemo>
+appHaptics.play("delete");
+appHaptics.dispose();`}
+        />
       </section>
 
       {/* ── React ── */}
 
       <section>
         <h2 id="react">React</h2>
-        <p>Hooks for React 18+. Available from <code>web-haptics/react</code>.</p>
-      </section>
-
-      <section id="react-setup">
-        <h2>React setup</h2>
         <p>
-          The React hooks are available from a separate entry point. No extra
-          packages needed.
+          Hooks for React 18+. Available from <code>web-haptics/react</code> — no
+          extra packages or providers needed.
         </p>
-        <CodeBlock code={`import { useHaptics } from "web-haptics/react";`} />
-      </section>
 
-      <section id="use-haptics">
-        <h2>useHaptics</h2>
+        <h3>useHaptics</h3>
         <p>
-          Wraps the singleton with stable callbacks safe for dependency
-          arrays and React re-renders.
+          Wraps the global singleton with stable callbacks safe for dependency
+          arrays. Does not cause re-renders.
         </p>
         <CodeBlock
           code={`import { useHaptics } from "web-haptics/react";
@@ -238,13 +210,11 @@ function SaveButton() {
   return <button onClick={handleSave}>Save</button>;
 }`}
         />
-      </section>
 
-      <section id="use-create-haptics">
-        <h2>useCreateHaptics</h2>
+        <h3>useCreateHaptics</h3>
         <p>
-          Creates an isolated haptics instance scoped to the component.
-          Automatically disposes on unmount.
+          Creates an isolated instance scoped to the component. Automatically
+          disposes on unmount.
         </p>
         <CodeBlock
           code={`import { useCreateHaptics } from "web-haptics/react";
@@ -263,89 +233,45 @@ function GameController() {
   return <button onClick={() => haptics.play("hit")}>Attack</button>;
 }`}
         />
-      </section>
 
-      <section id="enable-disable">
-        <h2>Enable / Disable</h2>
+        <h3>Enable / Disable</h3>
         <p>
           Both hooks expose <code>isEnabled()</code> and{" "}
           <code>setEnabled()</code> for building settings UIs.
         </p>
         <CodeBlock
-          code={`function HapticsToggle() {
-  const { isEnabled, setEnabled } = useHaptics();
-  const [on, setOn] = useState(isEnabled());
+          code={`const { isEnabled, setEnabled } = useHaptics();
 
-  return (
-    <label>
-      <input
-        type="checkbox"
-        checked={on}
-        onChange={(e) => {
-          setEnabled(e.target.checked);
-          setOn(e.target.checked);
-        }}
-      />
-      Haptic feedback
-    </label>
-  );
-}`}
+setEnabled(false); // mute
+setEnabled(true);  // resume
+isEnabled();       // → boolean`}
         />
       </section>
 
-      {/* ── Fallbacks ── */}
+      {/* ── Browser Support ── */}
 
       <section>
-        <h2 id="capability-checks">Capability checks</h2>
-        <p>Read support from the runtime instead of duplicating browser checks.</p>
-        <DocDemo
-          code={`const caps = haptics.getCapabilities();
-
-console.log(caps.haptics);       // navigator.vibrate exists
-console.log(caps.audio);         // Web Audio API exists
-console.log(caps.ios);           // iOS haptics available
-console.log(caps.reducedMotion); // prefers-reduced-motion active`}
-        >
-          <TriggerButton method="selection" />
-        </DocDemo>
-      </section>
-
-      <section>
-        <h2 id="mode-reporting">Mode reporting</h2>
-        <p>Every call returns a <code>PlaybackResult</code> with the output mode that was actually used.</p>
-        <DocDemo
-          code={`const result = haptics.success();
-
-if (result.mode === "haptics") {
-  // Native vibration was used
-}
-if (result.mode === "audio") {
-  // Audio fallback was used
-}
-if (result.mode === "none") {
-  // Nothing was available
-}`}
-        >
-          <TriggerButton method="success" />
-        </DocDemo>
-      </section>
-
-      <section>
-        <h2 id="reduced-motion">Reduced motion</h2>
+        <h2 id="browser-support">Browser support</h2>
         <p>
-          When the user has <code>prefers-reduced-motion: reduce</code> enabled in their
-          OS settings, all haptic and audio feedback is automatically suppressed.
-          The <code>reducedMotion</code> flag in <code>getCapabilities()</code> reflects
-          this preference, and all methods return <code>{`{ mode: "none" }`}</code>.
+          web-haptics adapts to each platform automatically. Native vibration is
+          preferred, with audio click fallback when unavailable.
         </p>
-      </section>
-
-      <section>
-        <h2 id="user-activation">User activation</h2>
+        <table className="api-table">
+          <thead>
+            <tr><th>Platform</th><th>Vibration</th><th>Audio fallback</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Android Chrome / Edge</td><td>Yes</td><td>Yes</td></tr>
+            <tr><td>iOS Safari 18.0+</td><td>Yes (Taptic Engine)</td><td>Yes</td></tr>
+            <tr><td>iOS Safari &lt; 18</td><td>No</td><td>Yes</td></tr>
+            <tr><td>Desktop browsers</td><td>No</td><td>Yes</td></tr>
+            <tr><td>Firefox Android</td><td>Yes</td><td>Yes</td></tr>
+          </tbody>
+        </table>
         <p>
-          Even when <code>navigator.vibrate()</code> exists, browsers can reject playback
-          outside a user-triggered interaction. That is why audio fallback and
-          mode reporting both matter.
+          On desktop, demos will return <code>{`{ mode: "audio" }`}</code> or{" "}
+          <code>{`{ mode: "none" }`}</code>. For the full haptic experience,
+          try on a mobile device.
         </p>
       </section>
 
@@ -354,53 +280,82 @@ if (result.mode === "none") {
       <section>
         <h2 id="api-reference">API Reference</h2>
 
-        <h3>PlaybackResult</h3>
-        <p>Returned by all haptics methods.</p>
+        <h3>haptics</h3>
+        <p>Global singleton. Import from <code>web-haptics</code>.</p>
         <table className="api-table">
           <thead>
-            <tr><th>Prop</th><th>Type</th></tr>
+            <tr><th>Method</th><th>Returns</th><th>Description</th></tr>
           </thead>
           <tbody>
-            <tr><td><code>mode</code></td><td><code>{'"haptics" | "audio" | "none"'}</code></td></tr>
+            <tr><td><code>selection()</code></td><td><code>PlaybackResult</code></td><td>Light 2-pulse tap</td></tr>
+            <tr><td><code>success()</code></td><td><code>PlaybackResult</code></td><td>Rising 3-pulse</td></tr>
+            <tr><td><code>error()</code></td><td><code>PlaybackResult</code></td><td>Urgent 4-pulse buzz</td></tr>
+            <tr><td><code>toggle()</code></td><td><code>PlaybackResult</code></td><td>Symmetric 3-pulse</td></tr>
+            <tr><td><code>snap()</code></td><td><code>PlaybackResult</code></td><td>Escalating 5-pulse ramp</td></tr>
+            <tr><td><code>play(pattern)</code></td><td><code>PlaybackResult</code></td><td>Play a <code>PatternBlock[]</code></td></tr>
+            <tr><td><code>getCapabilities()</code></td><td><code>CapabilityState</code></td><td>Check device support</td></tr>
+            <tr><td><code>setEnabled(bool)</code></td><td><code>void</code></td><td>Enable or disable globally</td></tr>
+            <tr><td><code>isEnabled()</code></td><td><code>boolean</code></td><td>Check enabled state</td></tr>
+            <tr><td><code>dispose()</code></td><td><code>void</code></td><td>Clean up AudioContext and DOM</td></tr>
+          </tbody>
+        </table>
+
+        <h3>createHaptics(options?)</h3>
+        <p>Factory for isolated instances. Import from <code>web-haptics</code>.</p>
+        <table className="api-table">
+          <thead>
+            <tr><th>Option</th><th>Type</th><th>Default</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>patterns</code></td><td><code>Record&lt;string, PatternBlock[]&gt;</code></td><td><code>{"{}"}</code></td></tr>
+          </tbody>
+        </table>
+        <p>Returns a <code>HapticsInstance</code> with <code>play(name | pattern)</code>, <code>register(name, pattern)</code>, <code>getCapabilities()</code>, <code>setEnabled()</code>, <code>isEnabled()</code>, and <code>dispose()</code>.</p>
+
+        <h3>PlaybackResult</h3>
+        <table className="api-table">
+          <thead>
+            <tr><th>Prop</th><th>Type</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>mode</code></td><td><code>{'"haptics" | "audio" | "none"'}</code></td><td>Which output was used</td></tr>
           </tbody>
         </table>
 
         <h3>CapabilityState</h3>
-        <p>Returned by <code>getCapabilities()</code>.</p>
         <table className="api-table">
           <thead>
-            <tr><th>Prop</th><th>Type</th></tr>
+            <tr><th>Prop</th><th>Type</th><th>Description</th></tr>
           </thead>
           <tbody>
-            <tr><td><code>haptics</code></td><td><code>boolean</code></td></tr>
-            <tr><td><code>audio</code></td><td><code>boolean</code></td></tr>
-            <tr><td><code>ios</code></td><td><code>boolean</code></td></tr>
-            <tr><td><code>reducedMotion</code></td><td><code>boolean</code></td></tr>
+            <tr><td><code>haptics</code></td><td><code>boolean</code></td><td>Vibration API available</td></tr>
+            <tr><td><code>audio</code></td><td><code>boolean</code></td><td>Web Audio API available</td></tr>
+            <tr><td><code>ios</code></td><td><code>boolean</code></td><td>iOS / iPadOS device</td></tr>
+            <tr><td><code>reducedMotion</code></td><td><code>boolean</code></td><td><code>prefers-reduced-motion</code> active</td></tr>
           </tbody>
         </table>
 
         <h3>PatternBlock</h3>
-        <p>Used in <code>play()</code> and <code>createHaptics()</code>.</p>
         <table className="api-table">
           <thead>
-            <tr><th>Type</th><th>Fields</th></tr>
+            <tr><th>Type</th><th>Fields</th><th>Description</th></tr>
           </thead>
           <tbody>
-            <tr><td><code>pulse</code></td><td><code>duration: number, intensity?: number (0-1)</code></td></tr>
-            <tr><td><code>gap</code></td><td><code>duration: number</code></td></tr>
+            <tr><td><code>pulse</code></td><td><code>duration: number, intensity?: number</code></td><td>Vibration. Intensity 0–1 (default: 1.0)</td></tr>
+            <tr><td><code>gap</code></td><td><code>duration: number</code></td><td>Pause between pulses</td></tr>
           </tbody>
         </table>
       </section>
 
-      {/* ── Accessibility ── */}
+      {/* ── Pattern Editor ── */}
 
       <section>
-        <h2 id="accessibility">Accessibility</h2>
+        <h2 id="pattern-editor">Pattern Editor</h2>
         <p>
-          web-haptics automatically respects the <code>prefers-reduced-motion</code> media
-          query. Users who have enabled reduced motion in their OS settings will
-          not receive any haptic or audio feedback.
+          Draw a pattern or start from a preset. Fine-tune the blocks,
+          preview and copy the code.
         </p>
+        <PatternEditor />
       </section>
     </DocsLayout>
   );
