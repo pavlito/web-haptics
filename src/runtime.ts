@@ -86,3 +86,11 @@ export function dispose(): void {
   resetAudioEngine();
   destroySafariHaptic();
 }
+
+export function setEnabled(enabled: boolean): void {
+  haptics.setEnabled(enabled);
+}
+
+export function isEnabled(): boolean {
+  return haptics.isEnabled();
+}

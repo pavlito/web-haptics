@@ -1,6 +1,6 @@
 export { getCapabilityState as getCapabilities } from "./capabilities";
 export { defaultPatterns } from "./patterns";
-export { createHaptics, dispose, haptics } from "./runtime";
+export { createHaptics, dispose, haptics, isEnabled, setEnabled } from "./runtime";
 export type {
   CapabilityState,
   CreateHapticsOptions,
