@@ -11,12 +11,13 @@ type Block = {
 type PatternBarProps = {
   pattern: readonly Block[];
   playKey: number;
+  scale?: number;
 };
 
 const MAX_BAR_HEIGHT = 32;
 const MIN_BAR_HEIGHT = 8;
 
-export function PatternBar({ pattern, playKey }: PatternBarProps) {
+export function PatternBar({ pattern, playKey, scale = 1 }: PatternBarProps) {
   const [lit, setLit] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -53,12 +54,12 @@ export function PatternBar({ pattern, playKey }: PatternBarProps) {
 
   return (
     <div className="seq">
-      <div className="seq-timeline">
+      <div className="seq-timeline" style={scale !== 1 ? { height: 56 * scale } : undefined}>
         <div className="seq-spine" />
         {items.map((item) => {
           const barHeight = item.type === "pulse"
-            ? MIN_BAR_HEIGHT + (MAX_BAR_HEIGHT - MIN_BAR_HEIGHT) * item.intensity
-            : 14;
+            ? (MIN_BAR_HEIGHT + (MAX_BAR_HEIGHT - MIN_BAR_HEIGHT) * item.intensity) * scale
+            : 14 * scale;
 
           return (
             <div
