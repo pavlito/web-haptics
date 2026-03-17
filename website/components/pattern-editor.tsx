@@ -75,7 +75,7 @@ function patternToCode(pulses: Pulse[]): string {
 }
 
 const TIMELINE_MS = 400;
-const MIN_DURATION = 5;
+const BLOCK_WIDTH = 20; // fixed width for all blocks (ms)
 const MIN_GAP = 10;
 
 export function PatternEditor() {
@@ -153,13 +153,12 @@ export function PatternEditor() {
 
       const ms = Math.round(clientXToMs(e.clientX));
       const intensity = clientYToIntensity(e.clientY);
-      const duration = 20;
 
-      if (hasOverlap(ms, duration)) return;
+      if (hasOverlap(ms, BLOCK_WIDTH)) return;
 
       setPulses((prev) => [
         ...prev,
-        { id: makeId(), position: ms, duration, intensity: Math.round(intensity * 100) / 100 },
+        { id: makeId(), position: ms, duration: BLOCK_WIDTH, intensity: Math.round(intensity * 100) / 100 },
       ]);
       setActivePreset("");
     },
@@ -168,7 +167,7 @@ export function PatternEditor() {
 
   // Drag: move block (from center), resize (from edges), intensity (from top)
   const startDrag = useCallback(
-    (e: React.MouseEvent, id: number, mode: "move" | "resize-left" | "resize-right" | "intensity") => {
+    (e: React.MouseEvent, id: number, mode: "move" | "intensity") => {
       e.preventDefault();
       e.stopPropagation();
       setIsDragging(true);
@@ -195,28 +194,6 @@ export function PatternEditor() {
             );
             if (overlaps) return prev;
             return prev.map((p) => (p.id === id ? { ...p, position: newPos } : p));
-          });
-        } else if (mode === "resize-right") {
-          const newDur = Math.max(MIN_DURATION, Math.round(startDur + msShift));
-          setPulses((prev) => {
-            const others = prev.filter((p) => p.id !== id);
-            const overlaps = others.some((p) =>
-              startPos < p.position + p.duration + MIN_GAP && startPos + newDur + MIN_GAP > p.position,
-            );
-            if (overlaps) return prev;
-            return prev.map((p) => (p.id === id ? { ...p, duration: newDur } : p));
-          });
-        } else if (mode === "resize-left") {
-          const newPos = Math.max(0, Math.round(startPos + msShift));
-          const newDur = Math.max(MIN_DURATION, Math.round(startDur - msShift));
-          if (newDur < MIN_DURATION) return;
-          setPulses((prev) => {
-            const others = prev.filter((p) => p.id !== id);
-            const overlaps = others.some((p) =>
-              newPos < p.position + p.duration + MIN_GAP && newPos + newDur + MIN_GAP > p.position,
-            );
-            if (overlaps) return prev;
-            return prev.map((p) => (p.id === id ? { ...p, position: newPos, duration: newDur } : p));
           });
         } else if (mode === "intensity") {
           const dy = startY - ev.clientY;
@@ -329,7 +306,7 @@ export function PatternEditor() {
 
             {/* Pulse blocks */}
             {pulses.map((p) => {
-              const heightPct = (p.intensity * 75 + 5); // 5% min, 80% max of timeline
+              const heightPct = (p.intensity * 75 + 5);
               return (
                 <div
                   key={p.id}
@@ -339,30 +316,15 @@ export function PatternEditor() {
                     width: `${msToPercent(p.duration)}%`,
                     height: `${heightPct}%`,
                   }}
+                  onMouseDown={(e) => startDrag(e, p.id, "move")}
                   onDoubleClick={(e) => handleDoubleClick(e, p.id)}
                 >
-                  {/* Left resize handle */}
-                  <div
-                    className="pe-handle pe-handle-left"
-                    onMouseDown={(e) => startDrag(e, p.id, "resize-left")}
-                  />
-                  {/* Center drag area — move */}
-                  <div
-                    className="pe-drag-area"
-                    onMouseDown={(e) => startDrag(e, p.id, "move")}
-                  />
                   {/* Top edge — intensity */}
                   <div
                     className="pe-handle-top"
                     onMouseDown={(e) => startDrag(e, p.id, "intensity")}
                   />
-                  {/* Right resize handle */}
-                  <div
-                    className="pe-handle pe-handle-right"
-                    onMouseDown={(e) => startDrag(e, p.id, "resize-right")}
-                  />
-                  {/* Label */}
-                  <span className="pe-block-label">{p.duration}ms</span>
+                  <span className="pe-block-label">{Math.round(p.intensity * 100)}%</span>
                 </div>
               );
             })}

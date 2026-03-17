@@ -1268,18 +1268,6 @@ pre code,
   overflow: hidden;
 }
 
-/* Dashed center line across timeline */
-.pe-timeline::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 0;
-  border-top: 1.5px dashed var(--gray4);
-  pointer-events: none;
-  z-index: 0;
-}
 
 /* Time markers along bottom */
 .pe-time-marker {
@@ -1292,21 +1280,25 @@ pre code,
   font-variant-numeric: tabular-nums;
 }
 
-/* Pulse blocks — width = duration, height = intensity */
+/* Pulse blocks — fixed width, height = intensity */
 .pe-block {
   position: absolute;
   bottom: 18px;
-  min-width: 4px;
   border-radius: 6px;
   background: rgba(59, 130, 246, 0.18);
   border: 1.5px solid rgba(59, 130, 246, 0.35);
-  transition: background 0.15s, border-color 0.15s;
-  display: flex;
+  cursor: move;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
 
 .pe-block:hover {
   background: rgba(59, 130, 246, 0.28);
   border-color: rgba(59, 130, 246, 0.55);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.pe-block:active {
+  cursor: grabbing;
 }
 
 .pe-block-lit {
@@ -1314,75 +1306,26 @@ pre code,
   border-color: rgba(34, 197, 94, 0.5) !important;
 }
 
-/* Left/right resize handles */
-.pe-handle {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 8px;
-  cursor: ew-resize;
-  z-index: 2;
-}
-
-.pe-handle::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 18px;
-  border-radius: 2px;
-  background: rgba(59, 130, 246, 0.5);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);
-  transition: background 0.15s;
-}
-
-.pe-handle:hover::after {
-  background: rgba(59, 130, 246, 0.9);
-}
-
-.pe-handle-left {
-  left: -1px;
-}
-
-.pe-handle-left::after {
-  left: 2px;
-}
-
-.pe-handle-right {
-  right: -1px;
-}
-
-.pe-handle-right::after {
-  right: 2px;
-}
-
 /* Top edge — intensity drag */
 .pe-handle-top {
   position: absolute;
-  top: -2px;
-  left: 8px;
-  right: 8px;
-  height: 6px;
+  top: -3px;
+  left: 0;
+  right: 0;
+  height: 8px;
   cursor: ns-resize;
   z-index: 2;
 }
 
-/* Center drag area — move */
-.pe-drag-area {
-  flex: 1;
-  cursor: move;
-  min-height: 100%;
-}
-
-/* Duration label */
+/* Intensity label inside block */
 .pe-block-label {
   position: absolute;
-  bottom: -16px;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   font-size: 10px;
-  color: var(--gray7);
+  font-weight: 500;
+  color: rgba(59, 130, 246, 0.7);
   white-space: nowrap;
   pointer-events: none;
   font-variant-numeric: tabular-nums;
