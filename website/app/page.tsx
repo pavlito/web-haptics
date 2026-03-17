@@ -167,7 +167,7 @@ export default function HomePage() {
             level="L"
           />
         </div>
-        <p className="hero-qr-text">try this on mobile ↗</p>
+        <p className="hero-qr-text">try this on mobile</p>
       </motion.div>
 
       <div className="container content">
