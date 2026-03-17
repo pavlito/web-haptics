@@ -1277,8 +1277,8 @@ pre code,
 .pe-bar {
   position: absolute;
   bottom: 20px;
-  width: 8px;
-  border-radius: 4px;
+  width: 18px;
+  border-radius: 6px;
   background: var(--gray8);
   transform: translateX(-50%);
   cursor: grab;

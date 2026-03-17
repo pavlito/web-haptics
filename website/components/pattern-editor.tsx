@@ -79,7 +79,7 @@ const TIMELINE_MS = 300;
 const TIMELINE_HEIGHT = 80;
 const MAX_BAR_H = 48;
 const MIN_BAR_H = 10;
-const BAR_WIDTH = 8;
+const BAR_WIDTH = 18;
 
 export function PatternEditor() {
   const [pulses, setPulses] = useState<Pulse[]>(
