@@ -1095,6 +1095,43 @@ pre code,
   .docs-toc {
     display: none;
   }
+
+  .docs-title {
+    font-size: 28px;
+  }
+
+  .doc-demo-preview {
+    min-height: 120px;
+    padding: 20px 16px;
+  }
+
+  .doc-demo-tabs {
+    height: 36px;
+    padding: 0 8px;
+  }
+
+  .doc-demo-tab {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  .doc-demo-copy {
+    font-size: 12px;
+  }
+
+  .pe-editor {
+    padding: 12px;
+  }
+
+  .api-table {
+    font-size: 13px;
+    min-width: 340px;
+  }
+
+  .api-table th,
+  .api-table td {
+    padding: 6px 8px;
+  }
 }
 
 /* API table */
