@@ -41,33 +41,33 @@ export default function HomePage() {
   const [playKey, setPlayKey] = useState(0);
   const animRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  // Fast vibration — high stiffness for speed, low damping for oscillation
-  const logo = useShakeSpring(0.3, 1500, 6);       // oscillates 3-4x then stops
-  const subtitle = useShakeSpring(0.2, 1800, 8);   // lighter, fewer oscillations
-  const buttons = useShakeSpring(0.25, 1600, 7);   // medium
-  const bar = useShakeSpring(0.4, 1200, 5);        // heaviest, most wobble
-  const codeLine = useShakeSpring(0.15, 2000, 9);  // light quick jitter
-  const actions = useShakeSpring(0.3, 1400, 6);    // medium
+  // All elements vibrate — same low damping, different mass = different amplitude
+  const logo = useShakeSpring(0.3, 1500, 5);
+  const subtitle = useShakeSpring(0.25, 1500, 5);
+  const buttons = useShakeSpring(0.3, 1500, 5);
+  const bar = useShakeSpring(0.4, 1200, 4);
+  const codeLine = useShakeSpring(0.25, 1500, 5);
+  const actions = useShakeSpring(0.35, 1400, 5);
 
   const kick = useCallback((name: string) => {
     const intensity = intensityMap[name] ?? 0.6;
     const force = 14 * intensity;
 
-    // Random direction for each element — makes it feel organic
-    function jolt(spring: ReturnType<typeof useShakeSpring>, scale: number) {
+    // Random direction per element — all get full force, mass handles the rest
+    function jolt(spring: ReturnType<typeof useShakeSpring>) {
       const angle = Math.random() * Math.PI * 2;
-      spring.x.set(Math.cos(angle) * force * scale);
-      spring.y.set(Math.sin(angle) * force * scale);
-      spring.rotate.set((Math.random() - 0.5) * 3 * scale * intensity);
+      spring.x.set(Math.cos(angle) * force);
+      spring.y.set(Math.sin(angle) * force);
+      spring.rotate.set((Math.random() - 0.5) * 4 * intensity);
     }
 
-    // Stagger the kicks slightly
-    jolt(logo, 1.0);
-    setTimeout(() => jolt(buttons, 0.7), 15);
-    setTimeout(() => jolt(bar, 1.2), 30);
-    setTimeout(() => jolt(subtitle, 0.4), 10);
-    setTimeout(() => jolt(codeLine, 0.3), 20);
-    setTimeout(() => jolt(actions, 0.6), 40);
+    // Stagger — feels like shockwave propagating
+    jolt(logo);
+    setTimeout(() => jolt(subtitle), 10);
+    setTimeout(() => jolt(buttons), 20);
+    setTimeout(() => jolt(bar), 30);
+    setTimeout(() => jolt(codeLine), 25);
+    setTimeout(() => jolt(actions), 40);
   }, [logo, buttons, bar, subtitle, codeLine, actions]);
 
   function trigger(p: (typeof patterns)[number]) {
