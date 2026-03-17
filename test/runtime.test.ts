@@ -61,6 +61,7 @@ beforeEach(() => {
   destroySafariHaptic();
   setNavigatorVibrate(undefined);
   setAudioContext(false);
+  haptics.setEnabled(true);
 });
 
 describe("haptics runtime", () => {
@@ -520,6 +521,43 @@ describe("prefers-reduced-motion", () => {
   it("reducedMotion is false by default", () => {
     const caps = haptics.getCapabilities();
     expect(caps.reducedMotion).toBe(false);
+  });
+});
+
+describe("enable/disable", () => {
+  it("returns none when disabled via singleton", () => {
+    setNavigatorVibrate(() => true);
+    setAudioContext(true);
+
+    haptics.setEnabled(false);
+    const result = haptics.success();
+    expect(result.mode).toBe("none");
+  });
+
+  it("resumes playback after re-enabling", () => {
+    setNavigatorVibrate(() => true);
+
+    haptics.setEnabled(false);
+    haptics.setEnabled(true);
+    const result = haptics.success();
+    expect(result.mode).toBe("haptics");
+  });
+
+  it("isEnabled returns current state", () => {
+    expect(haptics.isEnabled()).toBe(true);
+    haptics.setEnabled(false);
+    expect(haptics.isEnabled()).toBe(false);
+  });
+
+  it("instance enable/disable is isolated from singleton", () => {
+    setNavigatorVibrate(() => true);
+
+    const instance = createHaptics();
+    instance.setEnabled(false);
+
+    expect(haptics.isEnabled()).toBe(true);
+    expect(haptics.success().mode).toBe("haptics");
+    expect(instance.play("success").mode).toBe("none");
   });
 });
 

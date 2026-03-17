@@ -45,8 +45,10 @@ function resolvePattern(
   return clonePattern(pattern);
 }
 
+let singletonEnabled = true;
+
 function playNamedPattern(name: NamedPattern) {
-  return playPattern(clonePattern(defaultPatterns[name]));
+  return playPattern(clonePattern(defaultPatterns[name]), { enabled: singletonEnabled });
 }
 
 export const haptics: HapticsApi = {
@@ -55,8 +57,10 @@ export const haptics: HapticsApi = {
   error: () => playNamedPattern("error"),
   toggle: () => playNamedPattern("toggle"),
   snap: () => playNamedPattern("snap"),
-  play: (pattern) => playPattern(clonePattern(pattern)),
+  play: (pattern) => playPattern(clonePattern(pattern), { enabled: singletonEnabled }),
   getCapabilities: () => getCapabilityState(),
+  setEnabled: (enabled: boolean) => { singletonEnabled = enabled; },
+  isEnabled: () => singletonEnabled,
   dispose: () => { resetAudioEngine(); destroySafariHaptic(); },
 };
 
@@ -64,13 +68,16 @@ export function createHaptics(
   options: CreateHapticsOptions = {},
 ): HapticsInstance {
   const registry = createRegistry(options.patterns);
+  let enabled = true;
 
   return {
-    play: (nameOrPattern) => playPattern(resolvePattern(registry, nameOrPattern)),
+    play: (nameOrPattern) => playPattern(resolvePattern(registry, nameOrPattern), { enabled }),
     register: (name, pattern) => {
       registry.set(name, clonePattern(pattern));
     },
     getCapabilities: () => getCapabilityState(),
+    setEnabled: (value: boolean) => { enabled = value; },
+    isEnabled: () => enabled,
     dispose: () => { resetAudioEngine(); destroySafariHaptic(); },
   };
 }

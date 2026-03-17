@@ -85,9 +85,12 @@ function validatePattern(pattern: readonly PatternBlock[]): PatternBlock[] {
   });
 }
 
-export function playPattern(pattern: readonly PatternBlock[]): PlaybackResult {
+export function playPattern(
+  pattern: readonly PatternBlock[],
+  options?: { enabled?: boolean },
+): PlaybackResult {
   const capabilities = getCapabilityState();
-  if (capabilities.reducedMotion) return { mode: "none" };
+  if (capabilities.reducedMotion || options?.enabled === false) return { mode: "none" };
   const validated = validatePattern(pattern);
   const vibrationPattern = toVibrationPattern(validated);
 

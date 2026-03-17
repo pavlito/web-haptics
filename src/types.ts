@@ -45,6 +45,8 @@ export type HapticsApi = {
   snap: () => PlaybackResult;
   play: (pattern: readonly PatternBlock[]) => PlaybackResult;
   getCapabilities: () => CapabilityState;
+  setEnabled: (enabled: boolean) => void;
+  isEnabled: () => boolean;
   dispose: () => void;
 };
 
@@ -52,5 +54,7 @@ export type HapticsInstance = {
   play: (nameOrPattern: string | readonly PatternBlock[]) => PlaybackResult;
   register: (name: string, pattern: readonly PatternBlock[]) => void;
   getCapabilities: () => CapabilityState;
+  setEnabled: (enabled: boolean) => void;
+  isEnabled: () => boolean;
   dispose: () => void;
 };
