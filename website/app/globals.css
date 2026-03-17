@@ -280,7 +280,44 @@ pre code,
 }
 
 @media (max-width: 640px) {
-  .hero-qr { display: none; }
+  .hero-screen {
+    padding-top: 32px;
+  }
+
+  .hero-center h1 img {
+    height: 44px;
+  }
+
+  .hero-subtitle {
+    font-size: 14px;
+  }
+
+  .hero-buttons-row {
+    gap: 4px;
+  }
+
+  .hero-buttons-row .btn {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  .hero-code-line code {
+    font-size: 11px;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    width: 100%;
+    padding: 0 var(--side-padding);
+  }
+
+  .hero-actions .hero-btn {
+    width: 100%;
+  }
+
+  .hero-qr {
+    display: none;
+  }
 }
 
 .hero-qr-text {
