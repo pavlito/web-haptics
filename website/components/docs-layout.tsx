@@ -8,36 +8,18 @@ type DocsLayoutProps = {
   title: string;
   description: string;
   sections: { id: string; label: string }[];
-  prev?: { href: string; label: string };
-  next?: { href: string; label: string };
   children: ReactNode;
 };
 
 const sidebarLinks = [
-  { group: "Basics", items: [{ href: "/getting-started", label: "Getting Started" }] },
-  {
-    group: "API",
-    items: [
-      { href: "/haptics", label: "haptics" },
-      { href: "/create-haptics", label: "createHaptics()" },
-      { href: "/react", label: "React" },
-    ],
-  },
-  {
-    group: "Guides",
-    items: [
-      { href: "/fallbacks", label: "Fallbacks" },
-      { href: "/editor", label: "Pattern Editor" },
-    ],
-  },
+  { href: "/docs", label: "Documentation" },
+  { href: "/editor", label: "Pattern Editor" },
 ];
 
 export function DocsLayout({
   title,
   description,
   sections,
-  prev,
-  next,
   children,
 }: DocsLayoutProps) {
   const pathname = usePathname();
@@ -52,19 +34,14 @@ export function DocsLayout({
           </Link>
         </div>
         <nav className="docs-nav">
-          {sidebarLinks.map((group) => (
-            <div key={group.group} className="docs-nav-group">
-              <div className="docs-nav-label">{group.group}</div>
-              {group.items.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`docs-nav-link ${pathname === link.href ? "docs-nav-link-active" : ""}`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
+          {sidebarLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`docs-nav-link ${pathname === link.href ? "docs-nav-link-active" : ""}`}
+            >
+              {link.label}
+            </Link>
           ))}
         </nav>
         <div className="docs-sidebar-footer">
@@ -81,24 +58,6 @@ export function DocsLayout({
           <h1 className="docs-title">{title}</h1>
           <p className="docs-description">{description}</p>
           {children}
-          {(prev || next) && (
-            <div className="docs-pagination">
-              {prev ? (
-                <Link href={prev.href} className="docs-pagination-link docs-pagination-prev">
-                  <span className="docs-pagination-dir">Previous</span>
-                  <span className="docs-pagination-label">‹ {prev.label}</span>
-                </Link>
-              ) : (
-                <span />
-              )}
-              {next ? (
-                <Link href={next.href} className="docs-pagination-link docs-pagination-next">
-                  <span className="docs-pagination-dir">Next</span>
-                  <span className="docs-pagination-label">{next.label} ›</span>
-                </Link>
-              ) : null}
-            </div>
-          )}
         </article>
 
         <aside className="docs-toc">

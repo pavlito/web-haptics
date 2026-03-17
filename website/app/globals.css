@@ -594,15 +594,6 @@ pre code,
   gap: 20px;
 }
 
-.docs-nav-label {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--gray10);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  margin-bottom: 6px;
-}
-
 .docs-nav-link {
   display: block;
   padding: 4px 10px;
@@ -610,11 +601,6 @@ pre code,
   color: var(--gray11);
   border-radius: 6px;
   transition: color 0.2s, background 0.2s;
-}
-
-.docs-nav-group + .docs-nav-group {
-  border-top: 1px solid var(--gray3);
-  padding-top: 16px;
 }
 
 .docs-nav-link:hover {
@@ -805,40 +791,6 @@ pre code,
   display: none;
 }
 
-/* Docs pagination */
-.docs-pagination {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 64px;
-  padding-top: 24px;
-  border-top: 1px solid var(--gray3);
-}
-
-.docs-pagination-link {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.docs-pagination-next {
-  text-align: right;
-  margin-left: auto;
-}
-
-.docs-pagination-dir {
-  font-size: 13px;
-  color: var(--gray10);
-}
-
-.docs-pagination-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--gray12);
-}
-
-.docs-pagination-label:hover {
-  text-decoration: underline;
-}
 
 /* Sequencer timeline (fishbone visualization) */
 .seq {

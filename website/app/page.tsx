@@ -15,14 +15,14 @@ export default function HomePage() {
         <h1>web-haptics</h1>
         <p>An opinionated haptic feedback library for the web.</p>
         <div className="hero-buttons">
-          <Link className="hero-btn hero-btn-primary" href="/getting-started">
+          <Link className="hero-btn hero-btn-primary" href="/docs">
             Get started
           </Link>
           <a className="hero-btn hero-btn-secondary" href="https://github.com/pavlito/web-haptics" target="_blank" rel="noopener noreferrer">
             GitHub
           </a>
         </div>
-        <Link className="hero-link" href="/getting-started">Documentation</Link>
+        <Link className="hero-link" href="/docs">Documentation</Link>
       </section>
 
       <div className="container content">
