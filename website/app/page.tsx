@@ -42,6 +42,13 @@ const logoPaths = [
   "M103.1,35.59l1.05,7.64c-9.21.24-17.46.77-24.75,1.57l-.31-7.85h.05c4.4-3.8,8.79-8.65,13.19-14.55-3.87.31-7.33.87-10.36,1.67l-2.51-7.95c2.44-.1,6.22-.3,11.33-.58,5.11-.28,8.89-.49,11.33-.63l1.41,7.06h-.26c-.73.94-5.08,6.04-13.03,15.28,3.31-.24,7.6-.8,12.87-1.67Z",
 ];
 
+const logoViewBoxes = [
+  "0 0 31.5 44.9",
+  "29.5 14 26 31",
+  "54 14 26 31",
+  "78.5 14 26 31",
+];
+
 export default function HomePage() {
   const [active, setActive] = useState(patterns[1]);
   const [mode, setMode] = useState<PlaybackMode | null>(null);
@@ -106,21 +113,23 @@ export default function HomePage() {
     <>
       <section className="hero-screen">
         <div className="hero-center">
-          <h1>
-            <svg viewBox="0 0 104.15 44.9" height={36} aria-label="bzzz" role="img">
-              {logoPaths.map((d, i) => (
-                <motion.path
-                  key={i}
-                  d={d}
-                  fill="currentColor"
-                  style={{
-                    x: letterSprings[i].x,
-                    y: letterSprings[i].y,
-                    rotate: letterSprings[i].rotate,
-                  }}
-                />
-              ))}
-            </svg>
+          <h1 className="hero-logo">
+            {logoPaths.map((d, i) => (
+              <motion.span
+                key={i}
+                className="hero-letter"
+                style={{
+                  x: letterSprings[i].x,
+                  y: letterSprings[i].y,
+                  rotate: letterSprings[i].rotate,
+                  display: "inline-block",
+                }}
+              >
+                <svg viewBox={logoViewBoxes[i]} height={36} aria-hidden="true">
+                  <path d={d} fill="currentColor" />
+                </svg>
+              </motion.span>
+            ))}
           </h1>
 
           <motion.p
