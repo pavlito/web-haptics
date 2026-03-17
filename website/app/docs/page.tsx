@@ -270,8 +270,26 @@ isEnabled();       // → boolean`}
             <tr><td>SSR / Node.js</td><td>No</td><td>No</td><td>Silent (<code>none</code>)</td></tr>
           </tbody>
         </table></div>
+        <h3>iOS Taptic Engine (input switch hack)</h3>
         <p>
-          On desktop, demos will return <code>{`{ mode: "audio" }`}</code> or{" "}
+          iOS doesn{"'"}t support the Vibration API. Instead, bzzz uses a hidden{" "}
+          <code>{`<input type="checkbox" switch>`}</code> element. Toggling it
+          triggers the Taptic Engine at the WebKit level — works in all iOS browsers.
+        </p>
+        <div className="api-table-wrap"><table className="api-table">
+          <thead>
+            <tr><th>Browser</th><th>navigator.vibrate</th><th>Switch hack</th><th>bzzz mode</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Android Chrome</td><td>Yes</td><td>No</td><td>haptics</td></tr>
+            <tr><td>Android Firefox</td><td>No (removed v129)</td><td>No</td><td>audio</td></tr>
+            <tr><td>iOS Safari</td><td>No</td><td>Yes (iOS 18+)</td><td>haptics</td></tr>
+            <tr><td>iOS Chrome</td><td>No</td><td>Yes (iOS 18+)</td><td>haptics</td></tr>
+            <tr><td>iOS Firefox</td><td>No</td><td>Yes (iOS 18+)</td><td>haptics</td></tr>
+          </tbody>
+        </table></div>
+        <p>
+          On desktop, demos return <code>{`{ mode: "audio" }`}</code> or{" "}
           <code>{`{ mode: "none" }`}</code>. For the full haptic experience,
           try on a mobile device.
         </p>
