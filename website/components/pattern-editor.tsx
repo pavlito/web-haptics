@@ -1,16 +1,15 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { defaultPatterns, haptics } from "web-haptics";
 import type { PatternBlock } from "web-haptics";
-import { PatternBar } from "./pattern-bar";
-import { DrawCanvas } from "./draw-canvas";
+import { CodeBlock } from "./code-block";
 
-type Block = {
+type Pulse = {
   id: number;
-  type: "pulse" | "gap";
-  duration: number;
-  intensity: number;
+  position: number;  // ms from start
+  duration: number;  // ms
+  intensity: number; // 0-1
 };
 
 let nextId = Date.now();
@@ -24,223 +23,292 @@ const presets = [
   { name: "snap", label: "Snap" },
 ] as const;
 
-function patternToBlocks(pattern: readonly PatternBlock[]): Block[] {
-  return pattern.map((b) => ({
-    id: makeId(),
-    type: b.type,
-    duration: b.duration,
-    intensity: b.type === "pulse" ? (b.intensity ?? 1) : 1,
-  }));
+function patternToPulses(pattern: readonly PatternBlock[]): Pulse[] {
+  const pulses: Pulse[] = [];
+  let cursor = 0;
+  for (const b of pattern) {
+    if (b.type === "pulse") {
+      pulses.push({
+        id: makeId(),
+        position: cursor,
+        duration: b.duration,
+        intensity: b.intensity ?? 1,
+      });
+    }
+    cursor += b.duration;
+  }
+  return pulses;
 }
 
-function blocksToPattern(blocks: Block[]): PatternBlock[] {
-  return blocks.map((b): PatternBlock =>
-    b.type === "pulse"
-      ? { type: "pulse", duration: b.duration, intensity: b.intensity }
-      : { type: "gap", duration: b.duration }
-  );
+function pulsesToPattern(pulses: Pulse[]): PatternBlock[] {
+  const sorted = [...pulses].sort((a, b) => a.position - b.position);
+  const pattern: PatternBlock[] = [];
+  let cursor = 0;
+
+  for (const p of sorted) {
+    if (p.position > cursor) {
+      pattern.push({ type: "gap", duration: p.position - cursor });
+    }
+    pattern.push({
+      type: "pulse",
+      duration: p.duration,
+      intensity: Math.round(p.intensity * 100) / 100,
+    });
+    cursor = p.position + p.duration;
+  }
+
+  return pattern;
 }
 
-function patternToCode(blocks: Block[]): string {
-  const lines = blocks.map((b) => {
+function patternToCode(pulses: Pulse[]): string {
+  const pattern = pulsesToPattern(pulses);
+  const lines = pattern.map((b) => {
     if (b.type === "gap") {
       return `  { type: "gap", duration: ${b.duration} }`;
     }
     const intensity = b.intensity !== 1
-      ? `, intensity: ${Math.round(b.intensity * 100) / 100}`
+      ? `, intensity: ${b.intensity}`
       : "";
     return `  { type: "pulse", duration: ${b.duration}${intensity} }`;
   });
-  return `[\n${lines.join(",\n")}\n]`;
+  return `haptics.play([\n${lines.join(",\n")}\n]);`;
 }
 
+// Timeline constants
+const TIMELINE_MS = 300;
+const TIMELINE_HEIGHT = 80;
+const MAX_BAR_H = 48;
+const MIN_BAR_H = 10;
+const BAR_WIDTH = 8;
+
 export function PatternEditor() {
-  const [blocks, setBlocks] = useState<Block[]>(
-    () => patternToBlocks(defaultPatterns.success),
+  const [pulses, setPulses] = useState<Pulse[]>(
+    () => patternToPulses(defaultPatterns.success),
   );
   const [activePreset, setActivePreset] = useState<string>("success");
+  const [tab, setTab] = useState<"editor" | "code">("editor");
   const [copied, setCopied] = useState(false);
-  const [playKey, setPlayKey] = useState(0);
+  const [dragging, setDragging] = useState<{ id: number; type: "move" | "intensity" } | null>(null);
+  const [playLit, setPlayLit] = useState(false);
+  const timelineRef = useRef<HTMLDivElement>(null);
 
-  const totalDuration = blocks.reduce((sum, b) => sum + b.duration, 0);
+  const totalDuration = pulses.length > 0
+    ? Math.max(TIMELINE_MS, ...pulses.map((p) => p.position + p.duration))
+    : TIMELINE_MS;
+
+  const msToX = (ms: number) => (ms / totalDuration) * 100;
 
   const loadPreset = useCallback((name: string) => {
     const pattern = defaultPatterns[name as keyof typeof defaultPatterns];
     if (pattern) {
-      setBlocks(patternToBlocks(pattern));
+      setPulses(patternToPulses(pattern));
       setActivePreset(name);
     }
   }, []);
 
-  const updateBlock = useCallback((id: number, updates: Partial<Block>) => {
-    setBlocks((prev) => prev.map((b) => (b.id === id ? { ...b, ...updates } : b)));
-    setActivePreset("");
-  }, []);
+  const getTimelineMs = useCallback(
+    (clientX: number, clientY: number) => {
+      const el = timelineRef.current;
+      if (!el) return null;
+      const rect = el.getBoundingClientRect();
+      const xPct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      const yPct = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+      return {
+        ms: Math.round(xPct * totalDuration),
+        intensity: Math.max(0.05, 1 - yPct),
+      };
+    },
+    [totalDuration],
+  );
 
-  const removeBlock = useCallback((id: number) => {
-    setBlocks((prev) => prev.filter((b) => b.id !== id));
-    setActivePreset("");
-  }, []);
+  // Click empty space → add pulse
+  const handleTimelineClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (dragging) return;
+      // Don't add if clicking a bar
+      if ((e.target as HTMLElement).closest(".pe-bar")) return;
+      const pos = getTimelineMs(e.clientX, e.clientY);
+      if (!pos) return;
 
-  const addBlock = useCallback((type: "pulse" | "gap") => {
-    const block: Block = {
-      id: makeId(),
-      type,
-      duration: 20,
-      intensity: 1,
-    };
-    setBlocks((prev) => [...prev, block]);
-    setActivePreset("");
-  }, []);
+      setPulses((prev) => [
+        ...prev,
+        { id: makeId(), position: pos.ms, duration: 15, intensity: pos.intensity },
+      ]);
+      setActivePreset("");
+    },
+    [dragging, getTimelineMs],
+  );
 
-  const toggleType = useCallback((id: number) => {
-    setBlocks((prev) =>
-      prev.map((b) =>
-        b.id === id
-          ? { ...b, type: b.type === "pulse" ? "gap" : "pulse" }
-          : b,
-      ),
-    );
+  // Drag bar for intensity (vertical) or position (horizontal)
+  const handleBarMouseDown = useCallback(
+    (e: React.MouseEvent, id: number) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDragging({ id, type: "intensity" });
+
+      const startY = e.clientY;
+      const startX = e.clientX;
+      const pulse = pulses.find((p) => p.id === id);
+      if (!pulse) return;
+
+      const startIntensity = pulse.intensity;
+      const startPosition = pulse.position;
+
+      function onMove(ev: MouseEvent) {
+        const dy = startY - ev.clientY;
+        const dx = ev.clientX - startX;
+
+        // If horizontal movement dominates, move position
+        if (Math.abs(dx) > Math.abs(dy) + 5) {
+          const el = timelineRef.current;
+          if (!el) return;
+          const rect = el.getBoundingClientRect();
+          const msPerPx = totalDuration / rect.width;
+          const newPos = Math.max(0, Math.round(startPosition + dx * msPerPx));
+          setPulses((prev) =>
+            prev.map((p) => (p.id === id ? { ...p, position: newPos } : p)),
+          );
+        } else {
+          // Vertical = intensity
+          const newIntensity = Math.max(0.05, Math.min(1, startIntensity + dy / TIMELINE_HEIGHT));
+          setPulses((prev) =>
+            prev.map((p) =>
+              p.id === id
+                ? { ...p, intensity: Math.round(newIntensity * 100) / 100 }
+                : p,
+            ),
+          );
+        }
+        setActivePreset("");
+      }
+
+      function onUp() {
+        setDragging(null);
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+      }
+
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+    },
+    [pulses, totalDuration],
+  );
+
+  // Double-click to remove
+  const handleBarDoubleClick = useCallback((e: React.MouseEvent, id: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setPulses((prev) => prev.filter((p) => p.id !== id));
     setActivePreset("");
   }, []);
 
   const play = useCallback(() => {
-    const pattern = blocksToPattern(blocks);
-    haptics.play(pattern);
-    setPlayKey((k) => k + 1);
-  }, [blocks]);
+    haptics.play(pulsesToPattern(pulses));
+    setPlayLit(true);
+    setTimeout(() => setPlayLit(false), 400);
+  }, [pulses]);
 
-  const copyCode = useCallback(() => {
-    navigator.clipboard.writeText(patternToCode(blocks));
+  const copyCode = useCallback(async () => {
+    await navigator.clipboard.writeText(patternToCode(pulses));
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }, [blocks]);
+    setTimeout(() => setCopied(false), 1200);
+  }, [pulses]);
 
-  const handleDraw = useCallback((newBlocks: Block[]) => {
-    setBlocks(newBlocks);
-    setActivePreset("");
-  }, []);
+  const patternDuration = pulses.length > 0
+    ? Math.max(...pulses.map((p) => p.position + p.duration))
+    : 0;
 
   return (
-    <div className="pe">
-      {/* Presets */}
-      <div className="pe-presets">
-        <span className="pe-presets-label">Presets</span>
-        <div className="pe-presets-buttons">
-          {presets.map((p) => (
-            <button
-              key={p.name}
-              type="button"
-              className={`btn ${activePreset === p.name ? "btn-active" : ""}`}
-              onClick={() => loadPreset(p.name)}
-            >
-              {p.label}
-            </button>
-          ))}
+    <div className="doc-demo">
+      {/* Tabs */}
+      <div className="doc-demo-tabs">
+        <div className="doc-demo-tabs-left">
+          <button
+            type="button"
+            className={`doc-demo-tab ${tab === "editor" ? "doc-demo-tab-active" : ""}`}
+            onClick={() => setTab("editor")}
+          >
+            Editor
+          </button>
+          <button
+            type="button"
+            className={`doc-demo-tab ${tab === "code" ? "doc-demo-tab-active" : ""}`}
+            onClick={() => setTab("code")}
+          >
+            Code
+          </button>
         </div>
+        <button type="button" className="doc-demo-copy" onClick={copyCode}>
+          {copied ? "Copied" : "Copy code"}
+        </button>
       </div>
 
-      {/* Draw canvas */}
-      <DrawCanvas blocks={blocks} onDraw={handleDraw} makeId={makeId} />
-
-      {/* Block list */}
-      <div className="pe-blocks">
-        {blocks.map((block) => (
-          <div key={block.id} className="pe-block">
-            <button
-              type="button"
-              className={`pe-type pe-type-${block.type}`}
-              onClick={() => toggleType(block.id)}
-              title="Click to toggle pulse/gap"
-            >
-              {block.type}
-            </button>
-
-            <label className="pe-duration">
-              <input
-                type="number"
-                min={1}
-                max={500}
-                value={block.duration}
-                onChange={(e) =>
-                  updateBlock(block.id, {
-                    duration: Math.max(1, Number(e.target.value) || 1),
-                  })
-                }
-              />
-              <span>ms</span>
-            </label>
-
-            {block.type === "pulse" && (
-              <label className="pe-intensity">
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={Math.round(block.intensity * 100)}
-                  onChange={(e) =>
-                    updateBlock(block.id, {
-                      intensity: Number(e.target.value) / 100,
-                    })
-                  }
-                />
-                <span>{Math.round(block.intensity * 100)}%</span>
-              </label>
-            )}
-
-            <button
-              type="button"
-              className="pe-remove"
-              onClick={() => removeBlock(block.id)}
-              aria-label="Remove block"
-            >
-              ×
-            </button>
+      {tab === "editor" ? (
+        <div className="pe-editor">
+          {/* Presets */}
+          <div className="pe-presets">
+            {presets.map((p) => (
+              <button
+                key={p.name}
+                type="button"
+                className={`btn ${activePreset === p.name ? "btn-active" : ""}`}
+                onClick={() => loadPreset(p.name)}
+              >
+                {p.label}
+              </button>
+            ))}
           </div>
-        ))}
-      </div>
 
-      {/* Add buttons */}
-      <div className="pe-add">
-        <button type="button" className="btn" onClick={() => addBlock("pulse")}>
-          + Pulse
-        </button>
-        <button type="button" className="btn" onClick={() => addBlock("gap")}>
-          + Gap
-        </button>
-      </div>
+          {/* Interactive timeline */}
+          <div
+            ref={timelineRef}
+            className="pe-timeline"
+            onClick={handleTimelineClick}
+          >
+            {/* Spine line */}
+            <div className="pe-spine" />
 
-      {/* Pattern visualization */}
-      {blocks.length > 0 && (
-        <PatternBar pattern={blocksToPattern(blocks)} playKey={playKey} />
-      )}
+            {/* Pulse bars */}
+            {pulses.map((p) => {
+              const barH = MIN_BAR_H + (MAX_BAR_H - MIN_BAR_H) * p.intensity;
+              return (
+                <div
+                  key={p.id}
+                  className={`pe-bar ${playLit ? "pe-bar-lit" : ""}`}
+                  style={{
+                    left: `${msToX(p.position + p.duration / 2)}%`,
+                    height: `${barH}px`,
+                  }}
+                  onMouseDown={(e) => handleBarMouseDown(e, p.id)}
+                  onDoubleClick={(e) => handleBarDoubleClick(e, p.id)}
+                  title={`${p.duration}ms · ${Math.round(p.intensity * 100)}% — drag to adjust, double-click to remove`}
+                >
+                  <span className="pe-bar-label">{p.duration}ms</span>
+                </div>
+              );
+            })}
 
-      {/* Actions */}
-      <div className="pe-actions">
-        <button
-          type="button"
-          className="btn btn-active"
-          onClick={play}
-          disabled={blocks.length === 0}
-        >
-          ▶ Play
-        </button>
-        <button
-          type="button"
-          className="btn"
-          onClick={copyCode}
-          disabled={blocks.length === 0}
-        >
-          {copied ? "Copied!" : "Copy code"}
-        </button>
-        <span className="pe-total">{totalDuration}ms</span>
-      </div>
+            {/* Click hint */}
+            {pulses.length === 0 && (
+              <span className="pe-hint">Click to add pulses</span>
+            )}
+          </div>
 
-      {/* Code preview */}
-      {blocks.length > 0 && (
-        <div className="pe-code">
-          <pre><code>{patternToCode(blocks)}</code></pre>
+          {/* Footer */}
+          <div className="pe-footer">
+            <button
+              type="button"
+              className="btn btn-active"
+              onClick={play}
+              disabled={pulses.length === 0}
+            >
+              ▶ Play
+            </button>
+            <span className="pe-total">{patternDuration}ms</span>
+          </div>
         </div>
+      ) : (
+        <CodeBlock code={patternToCode(pulses)} />
       )}
     </div>
   );
