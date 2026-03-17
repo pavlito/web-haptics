@@ -261,11 +261,12 @@ isEnabled();       // → boolean`}
             <tr><th>Platform</th><th>Haptics</th><th>Audio</th><th>How</th></tr>
           </thead>
           <tbody>
-            <tr><td>Android Chrome / Edge</td><td>Yes</td><td>Yes</td><td>Vibration API</td></tr>
-            <tr><td>Android Firefox</td><td>Yes</td><td>Yes</td><td>Vibration API</td></tr>
-            <tr><td>iOS 18+ (Safari, Chrome, Firefox)</td><td>Yes</td><td>Yes</td><td>Taptic Engine (switch hack)</td></tr>
+            <tr><td>Android Chrome / Edge / Opera</td><td>Yes</td><td>Yes</td><td>Vibration API</td></tr>
+            <tr><td>Android Samsung Internet</td><td>Yes</td><td>Yes</td><td>Vibration API</td></tr>
+            <tr><td>Android Firefox</td><td>No</td><td>Yes</td><td>Audio only (Vibration API removed v129)</td></tr>
+            <tr><td>iOS 18+ (all browsers)</td><td>Yes</td><td>Yes</td><td>Taptic Engine (switch hack)</td></tr>
             <tr><td>iOS &lt; 18 (all browsers)</td><td>No</td><td>Yes</td><td>Audio only</td></tr>
-            <tr><td>Desktop Chrome / Firefox / Safari</td><td>No</td><td>Yes</td><td>Audio only</td></tr>
+            <tr><td>Desktop browsers</td><td>No</td><td>Yes</td><td>Audio only</td></tr>
             <tr><td>SSR / Node.js</td><td>No</td><td>No</td><td>Silent (<code>none</code>)</td></tr>
           </tbody>
         </table></div>
