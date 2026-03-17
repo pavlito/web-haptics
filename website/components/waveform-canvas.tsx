@@ -159,7 +159,7 @@ export function WaveformCanvas({ pattern, playing }: WaveformCanvasProps) {
     const h = canvas.height / dpr;
 
     const elapsed = performance.now() - startRef.current;
-    const animDuration = totalDuration + 200;
+    const animDuration = Math.max(300, totalDuration * 3);
     const progress = Math.min(1, elapsed / animDuration);
 
     ctx.save();

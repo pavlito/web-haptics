@@ -363,6 +363,13 @@ pre code,
     0 4px 4px 0 rgba(0, 0, 0, 0.01), 0 0 0 2px rgba(0, 0, 0, 0.15);
 }
 
+.pe-timeline:focus-visible,
+.pe-canvas:focus-visible,
+.theremin-pad:focus-visible {
+  outline: 2px solid var(--gray12);
+  outline-offset: 2px;
+}
+
 .btn:active {
   transform: scale(0.97);
 }
@@ -1757,4 +1764,31 @@ pre code,
   display: flex;
   gap: 8px;
   justify-content: center;
+}
+
+/* ── Accessibility: reduced motion ──────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .btn-anim-selection,
+  .btn-anim-success,
+  .btn-anim-error,
+  .btn-anim-toggle,
+  .btn-anim-snap {
+    animation: none !important;
+  }
+
+  .seq-tick-pulse .seq-tick-bar {
+    transition: none !important;
+  }
+
+  .seq-tick-active .seq-tick-bar {
+    transition: none !important;
+  }
+
+  .demo-toast {
+    animation: none !important;
+  }
+
+  .trigger-btn {
+    transition: none !important;
+  }
 }
