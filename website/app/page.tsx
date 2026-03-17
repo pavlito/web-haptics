@@ -2,7 +2,8 @@
 
 import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
-import { motion, useSpring, useTransform } from "framer-motion";
+import { motion, useSpring } from "framer-motion";
+import { QRCodeSVG } from "qrcode.react";
 import type { PlaybackMode } from "bzzz";
 import { defaultPatterns, haptics } from "bzzz";
 import { PatternBar } from "../components/pattern-bar";
@@ -44,6 +45,7 @@ export default function HomePage() {
 
   const logo = useShakeSpring(0.3, 1500, 5);
   const subtitle = useShakeSpring(0.25, 1500, 5);
+  const qr = useShakeSpring(0.5, 1000, 3); // heavy, wobbly — sticker feel
   const buttons = useShakeSpring(0.3, 1500, 5);
   const bar = useShakeSpring(0.4, 1200, 4);
   const codeLine = useShakeSpring(0.25, 1500, 5);
@@ -63,11 +65,12 @@ export default function HomePage() {
 
     jolt(logo);
     setTimeout(() => jolt(subtitle), 10);
+    setTimeout(() => jolt(qr), 50);
     setTimeout(() => jolt(buttons), 20);
     setTimeout(() => jolt(bar), 30);
     setTimeout(() => jolt(codeLine), 25);
     setTimeout(() => jolt(actions), 40);
-  }, [logo, buttons, bar, subtitle, codeLine, actions]);
+  }, [logo, buttons, bar, subtitle, codeLine, actions, qr]);
 
   function trigger(p: (typeof patterns)[number]) {
     const result = haptics[p.name]();
@@ -89,7 +92,7 @@ export default function HomePage() {
       <section className="hero-screen">
         <div className="hero-center">
           <motion.h1 style={{ x: logo.x, y: logo.y, rotate: logo.rotate }}>
-            <img src="/logo.svg" alt="bzzz" height={36} />
+            <img src="/logo.svg" alt="bzzz" height={64} />
           </motion.h1>
 
           <motion.p
@@ -150,6 +153,22 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
+
+      <motion.div
+        className="hero-qr"
+        style={{ x: qr.x, y: qr.y, rotate: qr.rotate }}
+      >
+        <div className="hero-qr-sticker">
+          <QRCodeSVG
+            value="https://bzzz.dev"
+            size={80}
+            bgColor="transparent"
+            fgColor="currentColor"
+            level="L"
+          />
+        </div>
+        <p className="hero-qr-text">try this on mobile ↗</p>
+      </motion.div>
 
       <div className="container content">
         <section>

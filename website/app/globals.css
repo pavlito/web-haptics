@@ -260,6 +260,33 @@ pre code,
 
 
 
+/* QR sticker */
+.hero-qr {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px 0;
+  transform: rotate(-2deg);
+}
+
+.hero-qr-sticker {
+  background: white;
+  border: 1px solid var(--gray3);
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  color: var(--gray12);
+}
+
+.hero-qr-text {
+  font-family: var(--font-hand), cursive;
+  font-size: 22px;
+  color: var(--gray8);
+  transform: rotate(-3deg);
+  margin: 0;
+}
+
 /* Content sections */
 .content {
   display: flex;

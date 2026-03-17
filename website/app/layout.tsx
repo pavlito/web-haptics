@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Caveat } from "next/font/google";
 import type { ReactNode } from "react";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
+const caveat = Caveat({ subsets: ["latin"], display: "swap", variable: "--font-hand" });
 
 export const metadata: Metadata = {
   title: "bzzz",
@@ -15,7 +16,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" className={inter.className}>
+    <html lang="en" className={`${inter.className} ${caveat.variable}`}>
       <body>
         <main>{children}</main>
         <footer className="footer">
