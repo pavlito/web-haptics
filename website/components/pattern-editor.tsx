@@ -236,9 +236,11 @@ export function PatternEditor() {
   }, [pulses]);
 
   const copyCode = useCallback(async () => {
-    await navigator.clipboard.writeText(patternToCode(pulses));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
+    try {
+      await navigator.clipboard.writeText(patternToCode(pulses));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    } catch {}
   }, [pulses]);
 
   const patternDuration = pulses.length > 0

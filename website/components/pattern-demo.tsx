@@ -39,7 +39,7 @@ const patterns = [
 ];
 
 export function PatternDemo() {
-  const [active, setActive] = useState(patterns[0]);
+  const [active, setActive] = useState<typeof patterns[number]>(patterns.find(p => p.name === "success")!);
   const [mode, setMode] = useState<PlaybackMode | null>(null);
   const [playCount, setPlayCount] = useState(0);
   const [flash, setFlash] = useState(false);

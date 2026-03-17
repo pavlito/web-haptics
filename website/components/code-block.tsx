@@ -31,7 +31,7 @@ function highlightCode(code: string) {
       continue;
     }
 
-    const stringMatch = remaining.match(/^(["'])(?:(?!\1).)*\1/);
+    const stringMatch = remaining.match(/^(["'])(?:\\.|(?!\1).)*\1/);
     if (stringMatch) {
       parts.push({ text: stringMatch[0], type: "string" });
       remaining = remaining.slice(stringMatch[0].length);

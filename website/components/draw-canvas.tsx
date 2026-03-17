@@ -96,9 +96,9 @@ function drawBlocks(
 
     if (block.type === "pulse") {
       const h = block.intensity * CANVAS_HEIGHT;
-      ctx.fillStyle = "rgba(59, 130, 246, 0.25)";
+      ctx.fillStyle = "rgba(34, 197, 94, 0.25)";
       ctx.fillRect(x, CANVAS_HEIGHT - h, w, h);
-      ctx.fillStyle = "rgba(59, 130, 246, 0.6)";
+      ctx.fillStyle = "rgba(34, 197, 94, 0.6)";
       ctx.fillRect(x, CANVAS_HEIGHT - h, w, 2);
     }
 
@@ -119,7 +119,7 @@ function drawStroke(
   }
   ctx.lineTo(points[points.length - 1].x, CANVAS_HEIGHT);
   ctx.closePath();
-  ctx.fillStyle = "rgba(59, 130, 246, 0.2)";
+  ctx.fillStyle = "rgba(34, 197, 94, 0.2)";
   ctx.fill();
 
   ctx.beginPath();
@@ -127,7 +127,7 @@ function drawStroke(
   for (let i = 1; i < points.length; i++) {
     ctx.lineTo(points[i].x, points[i].y);
   }
-  ctx.strokeStyle = "rgba(59, 130, 246, 0.8)";
+  ctx.strokeStyle = "rgba(34, 197, 94, 0.8)";
   ctx.lineWidth = 2;
   ctx.stroke();
 }

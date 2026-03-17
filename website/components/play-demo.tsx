@@ -6,7 +6,7 @@ import { haptics } from "bzzz";
 import { PatternBar } from "./pattern-bar";
 
 const customPattern = [
-  { type: "pulse" as const, duration: 20 },
+  { type: "pulse" as const, duration: 20, intensity: 0.5 },
   { type: "gap" as const, duration: 24 },
   { type: "pulse" as const, duration: 60 },
 ];

@@ -679,7 +679,7 @@ pre code,
   border: 1px solid var(--gray4);
   background: var(--gray0);
   color: var(--gray12);
-  border-radius: 5px;
+  border-radius: 6px;
   width: 26px;
   height: 26px;
   display: flex;

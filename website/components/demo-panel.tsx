@@ -29,7 +29,7 @@ type Toast = {
 let toastId = 0;
 
 export function DemoPanel() {
-  const [active, setActive] = useState("selection");
+  const [active, setActive] = useState("success");
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [animating, setAnimating] = useState<string | null>(null);
   const animTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);

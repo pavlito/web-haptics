@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { createHaptics, haptics } from "./runtime";
 import type {
   CapabilityState,
@@ -20,23 +20,25 @@ type UseHapticsReturn = {
   setEnabled: (enabled: boolean) => void;
 };
 
+const hapticsReturn: UseHapticsReturn = {
+  selection: haptics.selection,
+  success: haptics.success,
+  error: haptics.error,
+  toggle: haptics.toggle,
+  snap: haptics.snap,
+  play: haptics.play,
+  getCapabilities: haptics.getCapabilities,
+  isEnabled: haptics.isEnabled,
+  setEnabled: haptics.setEnabled,
+};
+
 /**
  * React hook for the bzzz singleton.
  * All returned references are stable (defined on a const object), safe for
  * dependency arrays. Does NOT dispose on unmount — the singleton is shared.
  */
 export function useHaptics(): UseHapticsReturn {
-  return {
-    selection: haptics.selection,
-    success: haptics.success,
-    error: haptics.error,
-    toggle: haptics.toggle,
-    snap: haptics.snap,
-    play: haptics.play,
-    getCapabilities: haptics.getCapabilities,
-    isEnabled: haptics.isEnabled,
-    setEnabled: haptics.setEnabled,
-  };
+  return hapticsReturn;
 }
 
 type UseCreateHapticsReturn = {
@@ -70,11 +72,11 @@ export function useCreateHaptics(
 
   const instance = instanceRef.current;
 
-  return {
+  return useMemo(() => ({
     play: instance.play,
     register: instance.register,
     getCapabilities: instance.getCapabilities,
     isEnabled: instance.isEnabled,
     setEnabled: instance.setEnabled,
-  };
+  }), [instance]);
 }
