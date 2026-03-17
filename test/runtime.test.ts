@@ -460,6 +460,22 @@ describe("intensity and PWM", () => {
     // 15ms <= PWM_CYCLE (20ms), returns [duration] directly
     expect(vibrate).toHaveBeenCalledWith([15]);
   });
+
+  it("PWM remainder respects intensity instead of full-power", () => {
+    const vibrate = vi.fn(() => true);
+    setNavigatorVibrate(vibrate);
+    haptics.play([{ type: "pulse", duration: 45, intensity: 0.5 }]);
+    const pattern = vibrate.mock.calls[0][0] as number[];
+    expect(pattern).toEqual([10, 10, 10, 10, 5]);
+  });
+
+  it("large PWM remainder is modulated, not full-power", () => {
+    const vibrate = vi.fn(() => true);
+    setNavigatorVibrate(vibrate);
+    haptics.play([{ type: "pulse", duration: 55, intensity: 0.5 }]);
+    const pattern = vibrate.mock.calls[0][0] as number[];
+    expect(pattern).toEqual([10, 10, 10, 10, 10, 5]);
+  });
 });
 
 describe("pattern validation", () => {

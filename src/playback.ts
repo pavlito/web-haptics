@@ -19,7 +19,12 @@ function modulateVibration(duration: number, intensity: number): number[] {
     remaining -= PWM_CYCLE;
   }
   if (remaining > 0) {
-    result.push(remaining);
+    const remainOn = Math.min(remaining, onTime);
+    result.push(remainOn);
+    const remainOff = remaining - remainOn;
+    if (remainOff > 0) {
+      result.push(remainOff);
+    }
   }
   return result;
 }

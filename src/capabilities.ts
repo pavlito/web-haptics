@@ -5,6 +5,10 @@ type GlobalWithAudio = typeof globalThis & {
   webkitAudioContext?: typeof AudioContext;
 };
 
+type NavigatorWithUAData = Navigator & {
+  userAgentData?: { platform: string };
+};
+
 function getAudioContextConstructor(): typeof AudioContext | undefined {
   const runtime = globalThis as GlobalWithAudio;
   return runtime.AudioContext ?? runtime.webkitAudioContext;
@@ -22,7 +26,7 @@ function isIOS(): boolean {
     // navigator.platform is deprecated but still needed for Safari on iPadOS
     if (navigator.platform === "MacIntel") return true;
     // Safety net for Chromium browsers where platform may be removed first
-    const uad = (navigator as any).userAgentData;
+    const uad = (navigator as NavigatorWithUAData).userAgentData;
     if (uad?.platform === "macOS") return true;
   }
   return false;

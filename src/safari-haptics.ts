@@ -25,6 +25,8 @@ function ensureDOM(): void {
   const input = document.createElement("input");
   input.type = "checkbox";
   input.setAttribute("switch", "");
+  input.ariaHidden = "true";
+  input.tabIndex = -1;
   label.appendChild(input);
 
   document.body.appendChild(label);
