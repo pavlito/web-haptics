@@ -258,23 +258,41 @@ pre code,
   margin-top: 4px;
 }
 
-/* Screen shake */
-@keyframes screen-shake {
-  0%, 100% { transform: translate(0, 0); }
-  10% { transform: translate(-3px, 1px); }
-  20% { transform: translate(4px, -2px); }
-  30% { transform: translate(-2px, 3px); }
-  40% { transform: translate(3px, -1px); }
-  50% { transform: translate(-4px, 0px); }
-  60% { transform: translate(2px, 2px); }
-  70% { transform: translate(-1px, -2px); }
-  80% { transform: translate(3px, 1px); }
-  90% { transform: translate(-1px, 0px); }
+/* Physics shake — each element reacts differently */
+@keyframes shake-heavy {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  10% { transform: translate(-4px, 2px) rotate(-0.5deg); }
+  20% { transform: translate(5px, -1px) rotate(0.5deg); }
+  30% { transform: translate(-3px, 3px) rotate(-0.3deg); }
+  40% { transform: translate(4px, -2px) rotate(0.4deg); }
+  50% { transform: translate(-5px, 1px) rotate(-0.2deg); }
+  60% { transform: translate(3px, -1px) rotate(0.3deg); }
+  70% { transform: translate(-2px, 2px) rotate(-0.1deg); }
+  80% { transform: translate(2px, 0px); }
 }
 
-.hero-shake {
-  animation: screen-shake 0.3s ease;
+@keyframes shake-medium {
+  0%, 100% { transform: translate(0, 0); }
+  15% { transform: translate(-2px, 1px); }
+  30% { transform: translate(3px, -1px); }
+  45% { transform: translate(-2px, 1px); }
+  60% { transform: translate(2px, 0px); }
+  75% { transform: translate(-1px, -1px); }
 }
+
+@keyframes shake-light {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-1px, 0px); }
+  40% { transform: translate(1px, 1px); }
+  60% { transform: translate(-1px, 0px); }
+  80% { transform: translate(1px, -1px); }
+}
+
+.shake-heavy { animation: shake-heavy 0.35s ease; }
+.shake-medium { animation: shake-medium 0.3s ease; }
+.shake-light { animation: shake-light 0.25s ease 0.02s; }
+.shake-heavy-delayed { animation: shake-heavy 0.4s ease 0.04s; }
+.shake-medium-delayed { animation: shake-medium 0.35s ease 0.06s; }
 
 
 /* Content sections */

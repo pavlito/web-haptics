@@ -52,13 +52,13 @@ export default function HomePage() {
 
   return (
     <>
-      <section className={`hero-screen ${shaking ? "hero-shake" : ""} ${flashBg}`}>
+      <section className={`hero-screen ${flashBg}`}>
         <div className="hero-center">
-          <h1><img src="/logo.svg" alt="bzzz" height={36} /></h1>
-          <p className="hero-subtitle">Haptic feedback for the web.</p>
+          <h1 className={shaking ? "shake-heavy" : ""}><img src="/logo.svg" alt="bzzz" height={36} /></h1>
+          <p className={`hero-subtitle ${shaking ? "shake-light" : ""}`}>Haptic feedback for the web.</p>
 
           <div className="hero-demo">
-            <div className="hero-buttons-row">
+            <div className={`hero-buttons-row ${shaking ? "shake-medium" : ""}`}>
               {patterns.map((p) => (
                 <button
                   key={p.name}
@@ -71,17 +71,17 @@ export default function HomePage() {
               ))}
             </div>
 
-            <div className="hero-bar">
+            <div className={`hero-bar ${shaking ? "shake-heavy-delayed" : ""}`}>
               <PatternBar pattern={defaultPatterns[active.name]} playKey={playKey} />
             </div>
 
-            <div className="hero-code-line">
+            <div className={`hero-code-line ${shaking ? "shake-light" : ""}`}>
               <code>{active.code}</code>
               {mode && <span className={`mode-badge mode-${mode}`}>{mode}</span>}
             </div>
           </div>
 
-          <div className="hero-actions">
+          <div className={`hero-actions ${shaking ? "shake-medium-delayed" : ""}`}>
             <Link className="hero-btn hero-btn-primary" href="/docs">
               Docs
             </Link>
