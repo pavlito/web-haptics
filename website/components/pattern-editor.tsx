@@ -76,9 +76,9 @@ function patternToCode(pulses: Pulse[]): string {
 
 // Timeline constants
 const TIMELINE_MS = 300;
-const TIMELINE_HEIGHT = 80;
-const MAX_BAR_H = 48;
-const MIN_BAR_H = 10;
+const TIMELINE_HEIGHT = 120;
+const MAX_BAR_H = 72;
+const MIN_BAR_H = 12;
 const BAR_WIDTH = 18;
 
 export function PatternEditor() {
