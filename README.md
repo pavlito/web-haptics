@@ -115,7 +115,7 @@ bzzz respects `prefers-reduced-motion: reduce`. When active, all methods silentl
 
 ## Documentation
 
-Full docs, interactive demos, and pattern editor at [bzzz.vercel.app](https://bzzz.vercel.app)
+Full docs, interactive demos, and pattern editor at [pavlito.github.io/bzzz](https://pavlito.github.io/bzzz)
 
 ## License
 
