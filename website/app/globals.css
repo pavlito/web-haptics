@@ -822,9 +822,9 @@ pre code,
 
 /* Pulse ticks */
 .seq-tick-pulse .seq-tick-bar {
-  width: 6px;
+  width: 14px;
   height: 32px;
-  border-radius: 3px;
+  border-radius: 7px;
   background: var(--gray8);
   transition: background 0.4s ease-out, box-shadow 0.4s ease-out, transform 0.15s ease;
 }
@@ -1289,12 +1289,12 @@ pre code,
   font-variant-numeric: tabular-nums;
 }
 
-/* Pulse bars — pill style matching seq-tick-pulse */
+/* Pulse bars — pill style */
 .pe-block {
   position: absolute;
   bottom: 20px;
-  width: 8px;
-  border-radius: 4px;
+  width: 14px;
+  border-radius: 7px;
   background: var(--gray8);
   cursor: move;
   transform: translateX(-50%);
