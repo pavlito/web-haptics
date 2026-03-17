@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
-import type { PlaybackMode } from "web-haptics";
-import { haptics } from "web-haptics";
+import type { PlaybackMode } from "bzzz";
+import { haptics } from "bzzz";
 
 const patterns = [
   { name: "selection", label: "Selection", action: () => haptics.selection() },

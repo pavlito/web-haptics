@@ -8,8 +8,8 @@ const isGhPages = process.env.GITHUB_PAGES === "true";
 
 const nextConfig: NextConfig = {
   output: "export",
-  basePath: isGhPages ? "/web-haptics" : "",
-  assetPrefix: isGhPages ? "/web-haptics/" : "",
+  basePath: isGhPages ? "/bzzz" : "",
+  assetPrefix: isGhPages ? "/bzzz/" : "",
   images: { unoptimized: true },
   turbopack: {
     root: path.join(configDir, ".."),

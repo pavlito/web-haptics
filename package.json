@@ -1,5 +1,5 @@
 {
-  "name": "web-haptics",
+  "name": "bzzz",
   "version": "0.1.0",
   "description": "Web haptics and audio fallback for interaction feedback on the web.",
   "main": "./dist/index.js",
@@ -33,7 +33,7 @@
     "dev:all": "concurrently \"npm run dev\" \"npm run dev:website\"",
     "lint": "tsc --noEmit",
     "test": "vitest run",
-    "pack:check": "npm pack --dry-run --cache /tmp/web-haptics-npm-cache"
+    "pack:check": "npm pack --dry-run --cache /tmp/bzzz-npm-cache"
   },
   "keywords": [
     "haptics",
@@ -46,11 +46,11 @@
   "author": "Pavle Lucic",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pavlito/web-haptics"
+    "url": "https://github.com/pavlito/bzzz"
   },
-  "homepage": "https://github.com/pavlito/web-haptics",
+  "homepage": "https://github.com/pavlito/bzzz",
   "bugs": {
-    "url": "https://github.com/pavlito/web-haptics/issues"
+    "url": "https://github.com/pavlito/bzzz/issues"
   },
   "peerDependencies": {
     "react": ">=18"

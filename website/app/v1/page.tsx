@@ -2,8 +2,8 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
-import type { PlaybackMode } from "web-haptics";
-import { defaultPatterns, haptics } from "web-haptics";
+import type { PlaybackMode } from "bzzz";
+import { defaultPatterns, haptics } from "bzzz";
 import { WaveformCanvas } from "../../components/waveform-canvas";
 import { InstallCode } from "../../components/install-code";
 import { CodeBlock } from "../../components/code-block";
@@ -39,7 +39,7 @@ export default function V1Page() {
   return (
     <>
       <section className="v1-hero">
-        <h1 className="v1-title">web-haptics</h1>
+        <h1 className="v1-title">bzzz</h1>
         <p className="v1-subtitle">Haptic feedback for the web. Native vibration + audio fallback.</p>
 
         <div className="v1-scope">
@@ -82,7 +82,7 @@ export default function V1Page() {
 
         <section>
           <CodeBlock
-            code={`import { haptics } from "web-haptics";
+            code={`import { haptics } from "bzzz";
 
 button.addEventListener("click", () => {
   haptics.success();
@@ -96,7 +96,7 @@ button.addEventListener("click", () => {
           </Link>
           <a
             className="hero-btn hero-btn-secondary"
-            href="https://github.com/pavlito/web-haptics"
+            href="https://github.com/pavlito/bzzz"
             target="_blank"
             rel="noopener noreferrer"
           >
