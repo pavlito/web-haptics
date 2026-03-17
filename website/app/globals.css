@@ -792,6 +792,47 @@ pre code,
 }
 
 
+/* Pattern demo (docs tabbed patterns) */
+.pattern-demo {
+  margin-top: 16px;
+}
+
+.pattern-demo-body {
+  margin-top: 16px;
+  border: 1px solid var(--gray3);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.pattern-demo-desc {
+  padding: 16px 16px 0;
+  font-size: 14px;
+  color: var(--gray11);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.pattern-demo-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 16px;
+  gap: 8px;
+}
+
+.pattern-demo-code {
+  border-top: 1px solid var(--gray3);
+  background: linear-gradient(to top, var(--gray2), var(--gray1) 16px);
+}
+
+.pattern-demo-code .code {
+  margin: 0;
+  padding: 12px 16px;
+  font-size: 13px;
+  border: none;
+  background: none;
+}
+
 /* Sequencer timeline (fishbone visualization) */
 .seq {
   width: 100%;
@@ -1434,4 +1475,36 @@ pre code,
   font-size: 13px;
   overflow-x: auto;
   margin: 0;
+}
+
+/* Draw canvas */
+.pe-canvas-wrap {
+  margin-bottom: 20px;
+}
+
+.pe-canvas-label {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.pe-canvas-label span:first-child {
+  font-size: 13px;
+  color: var(--gray9);
+}
+
+.pe-canvas-hint {
+  font-size: 11px;
+  color: var(--gray7);
+}
+
+.pe-canvas {
+  width: 100%;
+  height: 100px;
+  border: 1px solid var(--gray4);
+  border-radius: 6px;
+  background: var(--gray1);
+  cursor: crosshair;
+  touch-action: none;
 }

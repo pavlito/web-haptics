@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { defaultPatterns, haptics } from "web-haptics";
 import type { PatternBlock } from "web-haptics";
 import { PatternBar } from "./pattern-bar";
+import { DrawCanvas } from "./draw-canvas";
 
 type Block = {
   id: number;
@@ -115,6 +116,11 @@ export function PatternEditor() {
     setTimeout(() => setCopied(false), 2000);
   }, [blocks]);
 
+  const handleDraw = useCallback((newBlocks: Block[]) => {
+    setBlocks(newBlocks);
+    setActivePreset("");
+  }, []);
+
   return (
     <div className="pe">
       {/* Presets */}
@@ -133,6 +139,9 @@ export function PatternEditor() {
           ))}
         </div>
       </div>
+
+      {/* Draw canvas */}
+      <DrawCanvas blocks={blocks} onDraw={handleDraw} makeId={makeId} />
 
       {/* Block list */}
       <div className="pe-blocks">
