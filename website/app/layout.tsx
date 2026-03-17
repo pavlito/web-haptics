@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"], display: "swap" });
 export const metadata: Metadata = {
   title: "bzzz",
   description:
-    "Web haptics and audio fallback for interaction feedback on the web.",
+    "Haptic feedback for the web. Native vibration + audio fallback.",
 };
 
 export default function RootLayout({
