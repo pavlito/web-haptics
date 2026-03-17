@@ -1258,110 +1258,175 @@ pre code,
 
 /* ── Pattern Editor ──────────────────────────────────────────────── */
 
-.pattern-editor {
+.pe {
   margin-top: 24px;
 }
 
-.pattern-editor-toolbar {
+.pe-presets {
+  margin-bottom: 20px;
+}
+
+.pe-presets-label {
+  display: block;
+  font-size: 13px;
+  color: var(--gray9);
+  margin-bottom: 8px;
+}
+
+.pe-presets-buttons {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
-.pattern-editor-toolbar .btn-danger {
-  color: #e5484d;
-  border-color: #e5484d;
+/* Block list */
+.pe-blocks {
+  border: 1px solid var(--gray4);
+  border-radius: 6px;
+  overflow: hidden;
 }
 
-.pattern-editor-duration {
+.pe-block {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--gray3);
+}
+
+.pe-block:last-child {
+  border-bottom: none;
+}
+
+/* Type badge — clickable */
+.pe-type {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  min-width: 48px;
+  text-align: center;
+  transition: background 0.15s;
+}
+
+.pe-type-pulse {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+  border-color: rgba(59, 130, 246, 0.25);
+}
+
+.pe-type-pulse:hover {
+  background: rgba(59, 130, 246, 0.2);
+}
+
+.pe-type-gap {
+  background: var(--gray2);
+  color: var(--gray9);
+  border-color: var(--gray4);
+}
+
+.pe-type-gap:hover {
+  background: var(--gray3);
+}
+
+/* Duration input */
+.pe-duration {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.pe-duration input {
+  width: 52px;
+  padding: 3px 6px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--gray4);
+  border-radius: 4px;
+  background: var(--gray1);
+  color: var(--gray12);
+  text-align: right;
+}
+
+.pe-duration input:focus {
+  outline: none;
+  border-color: var(--gray8);
+}
+
+.pe-duration span {
+  font-size: 12px;
+  color: var(--gray8);
+}
+
+/* Intensity slider */
+.pe-intensity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 100px;
+}
+
+.pe-intensity input[type="range"] {
+  flex: 1;
+  height: 4px;
+  accent-color: #3b82f6;
+}
+
+.pe-intensity span {
+  font-size: 12px;
+  color: var(--gray9);
+  font-variant-numeric: tabular-nums;
+  min-width: 32px;
+  text-align: right;
+}
+
+/* Remove button */
+.pe-remove {
+  background: none;
+  border: none;
+  color: var(--gray7);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.pe-remove:hover {
+  color: #e5484d;
+}
+
+/* Add buttons */
+.pe-add {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* Actions bar */
+.pe-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.pe-total {
   margin-left: auto;
   font-size: 13px;
   color: var(--gray8);
   font-variant-numeric: tabular-nums;
 }
 
-.pattern-editor-timeline-wrapper {
-  overflow-x: auto;
-  border: 1px solid var(--gray4);
-  border-radius: 6px;
-  background: var(--gray1);
-}
-
-.pattern-editor-timeline {
-  position: relative;
-  cursor: crosshair;
-  min-width: 100%;
-}
-
-.pattern-editor-marker {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background: var(--gray3);
-}
-
-.pattern-editor-marker span {
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  font-size: 10px;
-  color: var(--gray7);
-  white-space: nowrap;
-  pointer-events: none;
-}
-
-.pattern-editor-block {
-  position: absolute;
-  background: rgba(59, 130, 246, 0.5);
-  border: 1px solid rgba(59, 130, 246, 0.8);
-  border-radius: 3px;
-  cursor: pointer;
-  transition: background 0.1s;
-}
-
-.pattern-editor-block:hover {
-  background: rgba(59, 130, 246, 0.65);
-}
-
-.pattern-editor-block-selected {
-  background: rgba(59, 130, 246, 0.7);
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
-}
-
-.pattern-editor-controls {
-  display: flex;
-  gap: 16px;
-  margin-top: 16px;
-  flex-wrap: wrap;
-}
-
-.pattern-editor-controls label {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-  min-width: 140px;
-}
-
-.pattern-editor-controls span {
-  font-size: 13px;
-  color: var(--gray9);
-  font-variant-numeric: tabular-nums;
-}
-
-.pattern-editor-controls input[type="range"] {
-  width: 100%;
-}
-
-.pattern-editor-code {
+/* Code preview */
+.pe-code {
   margin-top: 16px;
 }
 
-.pattern-editor-code pre {
+.pe-code pre {
   background: var(--gray2);
   border: 1px solid var(--gray4);
   border-radius: 6px;

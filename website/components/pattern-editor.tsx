@@ -1,274 +1,238 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
+import { defaultPatterns, haptics } from "web-haptics";
 import type { PatternBlock } from "web-haptics";
+import { PatternBar } from "./pattern-bar";
 
-type EditorBlock = {
+type Block = {
   id: number;
-  start: number; // ms from timeline start
-  duration: number; // ms
-  intensity: number; // 0-1
+  type: "pulse" | "gap";
+  duration: number;
+  intensity: number;
 };
 
-const TIMELINE_WIDTH = 560;
-const TIMELINE_HEIGHT = 80;
-const MIN_DURATION = 5;
-const DEFAULT_DURATION = 20;
-const PX_PER_MS = 2; // 2px per millisecond
+let nextId = Date.now();
+function makeId() { return nextId++; }
 
-function blocksToPattern(blocks: EditorBlock[]): PatternBlock[] {
-  const sorted = [...blocks].sort((a, b) => a.start - b.start);
-  const pattern: PatternBlock[] = [];
+const presets = [
+  { name: "selection", label: "Selection" },
+  { name: "success", label: "Success" },
+  { name: "error", label: "Error" },
+  { name: "toggle", label: "Toggle" },
+  { name: "snap", label: "Snap" },
+] as const;
 
-  let cursor = 0;
-  for (const block of sorted) {
-    if (block.start > cursor) {
-      pattern.push({ type: "gap", duration: block.start - cursor });
-    }
-    pattern.push({
-      type: "pulse",
-      duration: block.duration,
-      intensity: Math.round(block.intensity * 100) / 100,
-    });
-    cursor = block.start + block.duration;
-  }
-
-  return pattern;
+function patternToBlocks(pattern: readonly PatternBlock[]): Block[] {
+  return pattern.map((b) => ({
+    id: makeId(),
+    type: b.type,
+    duration: b.duration,
+    intensity: b.type === "pulse" ? (b.intensity ?? 1) : 1,
+  }));
 }
 
-function patternToCode(blocks: EditorBlock[]): string {
-  const pattern = blocksToPattern(blocks);
-  const lines = pattern.map((b) => {
+function blocksToPattern(blocks: Block[]): PatternBlock[] {
+  return blocks.map((b): PatternBlock =>
+    b.type === "pulse"
+      ? { type: "pulse", duration: b.duration, intensity: b.intensity }
+      : { type: "gap", duration: b.duration }
+  );
+}
+
+function patternToCode(blocks: Block[]): string {
+  const lines = blocks.map((b) => {
     if (b.type === "gap") {
       return `  { type: "gap", duration: ${b.duration} }`;
     }
-    const intensity =
-      b.intensity != null && b.intensity !== 1
-        ? `, intensity: ${b.intensity}`
-        : "";
+    const intensity = b.intensity !== 1
+      ? `, intensity: ${Math.round(b.intensity * 100) / 100}`
+      : "";
     return `  { type: "pulse", duration: ${b.duration}${intensity} }`;
   });
   return `[\n${lines.join(",\n")}\n]`;
 }
 
 export function PatternEditor() {
-  const [blocks, setBlocks] = useState<EditorBlock[]>([
-    { id: 1, start: 0, duration: 20, intensity: 0.6 },
-    { id: 2, start: 50, duration: 30, intensity: 1.0 },
-  ]);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [nextId, setNextId] = useState(3);
+  const [blocks, setBlocks] = useState<Block[]>(
+    () => patternToBlocks(defaultPatterns.success),
+  );
+  const [activePreset, setActivePreset] = useState<string>("success");
   const [copied, setCopied] = useState(false);
-  const timelineRef = useRef<HTMLDivElement>(null);
+  const [playKey, setPlayKey] = useState(0);
 
-  const totalDuration = blocks.reduce(
-    (max, b) => Math.max(max, b.start + b.duration),
-    0,
-  );
-  const timelineWidthPx = Math.max(
-    TIMELINE_WIDTH,
-    (totalDuration + 100) * PX_PER_MS,
-  );
+  const totalDuration = blocks.reduce((sum, b) => sum + b.duration, 0);
 
-  const handleTimelineClick = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const x = e.clientX - rect.left + e.currentTarget.scrollLeft;
-      const y = e.clientY - rect.top;
-      const ms = Math.round(x / PX_PER_MS);
-      const intensity = Math.max(0.1, Math.min(1, 1 - y / TIMELINE_HEIGHT));
+  const loadPreset = useCallback((name: string) => {
+    const pattern = defaultPatterns[name as keyof typeof defaultPatterns];
+    if (pattern) {
+      setBlocks(patternToBlocks(pattern));
+      setActivePreset(name);
+    }
+  }, []);
 
-      // Check if clicking on existing block
-      const clickedBlock = blocks.find(
-        (b) => ms >= b.start && ms <= b.start + b.duration,
-      );
-      if (clickedBlock) {
-        setSelectedId(clickedBlock.id);
-        return;
-      }
+  const updateBlock = useCallback((id: number, updates: Partial<Block>) => {
+    setBlocks((prev) => prev.map((b) => (b.id === id ? { ...b, ...updates } : b)));
+    setActivePreset("");
+  }, []);
 
-      // Check overlap with new block
-      const newStart = ms;
-      const newEnd = ms + DEFAULT_DURATION;
-      const overlaps = blocks.some(
-        (b) => newStart < b.start + b.duration && newEnd > b.start,
-      );
-      if (overlaps) return;
+  const removeBlock = useCallback((id: number) => {
+    setBlocks((prev) => prev.filter((b) => b.id !== id));
+    setActivePreset("");
+  }, []);
 
-      const newBlock: EditorBlock = {
-        id: nextId,
-        start: ms,
-        duration: DEFAULT_DURATION,
-        intensity: Math.round(intensity * 100) / 100,
-      };
-      setBlocks((prev) => [...prev, newBlock]);
-      setSelectedId(nextId);
-      setNextId((n) => n + 1);
-    },
-    [blocks, nextId],
-  );
+  const addBlock = useCallback((type: "pulse" | "gap") => {
+    const block: Block = {
+      id: makeId(),
+      type,
+      duration: 20,
+      intensity: 1,
+    };
+    setBlocks((prev) => [...prev, block]);
+    setActivePreset("");
+  }, []);
 
-  const deleteSelected = useCallback(() => {
-    if (selectedId === null) return;
-    setBlocks((prev) => prev.filter((b) => b.id !== selectedId));
-    setSelectedId(null);
-  }, [selectedId]);
+  const toggleType = useCallback((id: number) => {
+    setBlocks((prev) =>
+      prev.map((b) =>
+        b.id === id
+          ? { ...b, type: b.type === "pulse" ? "gap" : "pulse" }
+          : b,
+      ),
+    );
+    setActivePreset("");
+  }, []);
 
-  const updateBlock = useCallback(
-    (id: number, updates: Partial<EditorBlock>) => {
-      setBlocks((prev) =>
-        prev.map((b) => (b.id === id ? { ...b, ...updates } : b)),
-      );
-    },
-    [],
-  );
-
-  const playPattern = useCallback(async () => {
-    // website's package.json has "web-haptics": "file:.." so this resolves locally
-    const { haptics } = await import("web-haptics");
+  const play = useCallback(() => {
     const pattern = blocksToPattern(blocks);
     haptics.play(pattern);
+    setPlayKey((k) => k + 1);
   }, [blocks]);
 
   const copyCode = useCallback(() => {
-    const code = patternToCode(blocks);
-    navigator.clipboard.writeText(code);
+    navigator.clipboard.writeText(patternToCode(blocks));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }, [blocks]);
 
-  const clearAll = useCallback(() => {
-    setBlocks([]);
-    setSelectedId(null);
-  }, []);
-
-  const selectedBlock = blocks.find((b) => b.id === selectedId);
-
   return (
-    <div className="pattern-editor">
-      <div className="pattern-editor-toolbar">
-        <button type="button" className="btn" onClick={playPattern}>
-          Play
-        </button>
-        <button type="button" className="btn" onClick={copyCode}>
-          {copied ? "Copied!" : "Copy code"}
-        </button>
-        <button type="button" className="btn" onClick={clearAll}>
-          Clear
-        </button>
-        {selectedBlock && (
-          <button
-            type="button"
-            className="btn btn-danger"
-            onClick={deleteSelected}
-          >
-            Delete block
-          </button>
-        )}
-        <span className="pattern-editor-duration">{totalDuration}ms total</span>
-      </div>
-
-      <div className="pattern-editor-timeline-wrapper" ref={timelineRef}>
-        <div
-          className="pattern-editor-timeline"
-          style={{
-            width: `${timelineWidthPx}px`,
-            height: `${TIMELINE_HEIGHT}px`,
-          }}
-          onClick={handleTimelineClick}
-        >
-          {/* Time markers */}
-          {Array.from(
-            { length: Math.ceil(timelineWidthPx / PX_PER_MS / 50) + 1 },
-            (_, i) => (
-              <div
-                key={i}
-                className="pattern-editor-marker"
-                style={{ left: `${i * 50 * PX_PER_MS}px` }}
-              >
-                <span>{i * 50}ms</span>
-              </div>
-            ),
-          )}
-
-          {/* Blocks */}
-          {blocks.map((block) => (
-            <div
-              key={block.id}
-              className={`pattern-editor-block ${
-                block.id === selectedId ? "pattern-editor-block-selected" : ""
-              }`}
-              style={{
-                left: `${block.start * PX_PER_MS}px`,
-                width: `${Math.max(block.duration * PX_PER_MS, 4)}px`,
-                height: `${block.intensity * 100}%`,
-                bottom: 0,
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedId(block.id);
-              }}
-            />
+    <div className="pe">
+      {/* Presets */}
+      <div className="pe-presets">
+        <span className="pe-presets-label">Presets</span>
+        <div className="pe-presets-buttons">
+          {presets.map((p) => (
+            <button
+              key={p.name}
+              type="button"
+              className={`btn ${activePreset === p.name ? "btn-active" : ""}`}
+              onClick={() => loadPreset(p.name)}
+            >
+              {p.label}
+            </button>
           ))}
         </div>
       </div>
 
-      {/* Selected block controls */}
-      {selectedBlock && (
-        <div className="pattern-editor-controls">
-          <label>
-            <span>Start: {selectedBlock.start}ms</span>
-            <input
-              type="range"
-              min={0}
-              max={500}
-              value={selectedBlock.start}
-              onChange={(e) =>
-                updateBlock(selectedBlock.id, {
-                  start: Number(e.target.value),
-                })
-              }
-            />
-          </label>
-          <label>
-            <span>Duration: {selectedBlock.duration}ms</span>
-            <input
-              type="range"
-              min={MIN_DURATION}
-              max={200}
-              value={selectedBlock.duration}
-              onChange={(e) =>
-                updateBlock(selectedBlock.id, {
-                  duration: Number(e.target.value),
-                })
-              }
-            />
-          </label>
-          <label>
-            <span>
-              Intensity: {Math.round(selectedBlock.intensity * 100)}%
-            </span>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={Math.round(selectedBlock.intensity * 100)}
-              onChange={(e) =>
-                updateBlock(selectedBlock.id, {
-                  intensity: Number(e.target.value) / 100,
-                })
-              }
-            />
-          </label>
-        </div>
+      {/* Block list */}
+      <div className="pe-blocks">
+        {blocks.map((block) => (
+          <div key={block.id} className="pe-block">
+            <button
+              type="button"
+              className={`pe-type pe-type-${block.type}`}
+              onClick={() => toggleType(block.id)}
+              title="Click to toggle pulse/gap"
+            >
+              {block.type}
+            </button>
+
+            <label className="pe-duration">
+              <input
+                type="number"
+                min={1}
+                max={500}
+                value={block.duration}
+                onChange={(e) =>
+                  updateBlock(block.id, {
+                    duration: Math.max(1, Number(e.target.value) || 1),
+                  })
+                }
+              />
+              <span>ms</span>
+            </label>
+
+            {block.type === "pulse" && (
+              <label className="pe-intensity">
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={Math.round(block.intensity * 100)}
+                  onChange={(e) =>
+                    updateBlock(block.id, {
+                      intensity: Number(e.target.value) / 100,
+                    })
+                  }
+                />
+                <span>{Math.round(block.intensity * 100)}%</span>
+              </label>
+            )}
+
+            <button
+              type="button"
+              className="pe-remove"
+              onClick={() => removeBlock(block.id)}
+              aria-label="Remove block"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Add buttons */}
+      <div className="pe-add">
+        <button type="button" className="btn" onClick={() => addBlock("pulse")}>
+          + Pulse
+        </button>
+        <button type="button" className="btn" onClick={() => addBlock("gap")}>
+          + Gap
+        </button>
+      </div>
+
+      {/* Pattern visualization */}
+      {blocks.length > 0 && (
+        <PatternBar pattern={blocksToPattern(blocks)} playKey={playKey} />
       )}
 
-      {/* Code preview */}
-      <div className="pattern-editor-code">
-        <pre>
-          <code>{patternToCode(blocks)}</code>
-        </pre>
+      {/* Actions */}
+      <div className="pe-actions">
+        <button
+          type="button"
+          className="btn btn-active"
+          onClick={play}
+          disabled={blocks.length === 0}
+        >
+          ▶ Play
+        </button>
+        <button
+          type="button"
+          className="btn"
+          onClick={copyCode}
+          disabled={blocks.length === 0}
+        >
+          {copied ? "Copied!" : "Copy code"}
+        </button>
+        <span className="pe-total">{totalDuration}ms</span>
       </div>
+
+      {/* Code preview */}
+      {blocks.length > 0 && (
+        <div className="pe-code">
+          <pre><code>{patternToCode(blocks)}</code></pre>
+        </div>
+      )}
     </div>
   );
 }

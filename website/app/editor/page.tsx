@@ -10,8 +10,8 @@ export default function EditorPage() {
       <section>
         <h1>Pattern Editor</h1>
         <p>
-          Design custom haptic patterns visually. Click the timeline to add
-          pulses, select blocks to adjust their timing and intensity.
+          Build custom haptic patterns. Start from a preset, tweak the
+          blocks, preview and copy the code.
         </p>
       </section>
       <PatternEditor />
