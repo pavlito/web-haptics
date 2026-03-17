@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { PlaybackMode } from "bzzz";
-import { haptics } from "bzzz";
+import type { PlaybackMode } from "web-haptics";
+import { haptics } from "web-haptics";
 import { PatternBar } from "./pattern-bar";
 
 const customPattern = [

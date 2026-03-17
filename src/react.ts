@@ -23,7 +23,7 @@ type UseHapticsReturn = {
 };
 
 /**
- * React hook for the bzzz singleton.
+ * React hook for the web-haptics singleton.
  * All returned references are stable (defined on a const object), safe for
  * dependency arrays. Does NOT dispose on unmount — the singleton is shared.
  */

@@ -1,5 +1,5 @@
 /**
- * Audio feedback engine for bzzz.
+ * Audio feedback engine for web-haptics.
  *
  * Produces a soft, warm click using shaped noise through a lowpass filter.
  * Similar architecture to other haptic audio engines (noise → filter → gain)

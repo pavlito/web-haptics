@@ -1,7 +1,7 @@
 import { PatternEditor } from "../../components/pattern-editor";
 
 export const metadata = {
-  title: "Pattern Editor — bzzz",
+  title: "Pattern Editor — web-haptics",
 };
 
 export default function EditorPage() {

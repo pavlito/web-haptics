@@ -7,14 +7,14 @@ import { PatternEditor } from "../../components/pattern-editor";
 import { PlayDemo } from "../../components/play-demo";
 
 export const metadata = {
-  title: "Documentation — bzzz",
+  title: "Documentation — web-haptics",
 };
 
 export default function DocsPage() {
   return (
     <DocsLayout
       title="Documentation"
-      description="Everything you need to use bzzz."
+      description="Everything you need to use web-haptics."
       sections={[
         { id: "installation", label: "Installation" },
         { id: "basic-usage", label: "Basic usage" },
@@ -34,7 +34,7 @@ export default function DocsPage() {
       <section>
         <h2 id="installation">Installation</h2>
         <p>Install the package from your command line.</p>
-        <CodeBlock code="npm install bzzz" filename="Terminal" />
+        <CodeBlock code="npm install web-haptics" filename="Terminal" />
       </section>
 
       <section>
@@ -45,7 +45,7 @@ export default function DocsPage() {
           outside click, tap, or keyboard handlers.
         </p>
         <DocDemo
-          code={`import { haptics } from "bzzz";
+          code={`import { haptics } from "web-haptics";
 
 button.addEventListener("click", () => {
   haptics.success();
@@ -146,7 +146,7 @@ haptics.success();         // → { mode: "haptics" }`}
           singleton.
         </p>
         <DocDemo
-          code={`import { createHaptics } from "bzzz";
+          code={`import { createHaptics } from "web-haptics";
 
 const appHaptics = createHaptics({
   patterns: {
@@ -183,7 +183,7 @@ appHaptics.dispose();`}
       <section>
         <h2 id="react">React</h2>
         <p>
-          Hooks for React 18+. Available from <code>bzzz/react</code> — no
+          Hooks for React 18+. Available from <code>web-haptics/react</code> — no
           extra packages or providers needed.
         </p>
 
@@ -193,7 +193,7 @@ appHaptics.dispose();`}
           arrays. Does not cause re-renders.
         </p>
         <CodeBlock
-          code={`import { useHaptics } from "bzzz/react";
+          code={`import { useHaptics } from "web-haptics/react";
 
 function SaveButton() {
   const { success, error } = useHaptics();
@@ -217,7 +217,7 @@ function SaveButton() {
           disposes on unmount.
         </p>
         <CodeBlock
-          code={`import { useCreateHaptics } from "bzzz/react";
+          code={`import { useCreateHaptics } from "web-haptics/react";
 
 function GameController() {
   const haptics = useCreateHaptics({
@@ -253,7 +253,7 @@ isEnabled();       // → boolean`}
       <section>
         <h2 id="browser-support">Browser support</h2>
         <p>
-          bzzz adapts to each platform automatically. Native vibration is
+          web-haptics adapts to each platform automatically. Native vibration is
           preferred, with audio click fallback when unavailable.
         </p>
         <table className="api-table">
@@ -281,7 +281,7 @@ isEnabled();       // → boolean`}
         <h2 id="api-reference">API Reference</h2>
 
         <h3>haptics</h3>
-        <p>Global singleton. Import from <code>bzzz</code>.</p>
+        <p>Global singleton. Import from <code>web-haptics</code>.</p>
         <table className="api-table">
           <thead>
             <tr><th>Method</th><th>Returns</th><th>Description</th></tr>
@@ -301,7 +301,7 @@ isEnabled();       // → boolean`}
         </table>
 
         <h3>createHaptics(options?)</h3>
-        <p>Factory for isolated instances. Import from <code>bzzz</code>.</p>
+        <p>Factory for isolated instances. Import from <code>web-haptics</code>.</p>
         <table className="api-table">
           <thead>
             <tr><th>Option</th><th>Type</th><th>Default</th></tr>

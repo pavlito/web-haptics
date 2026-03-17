@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { haptics } from "bzzz";
+import { haptics } from "web-haptics";
 
 export function CapabilityDisplay() {
   const [caps, setCaps] = useState<{ haptics: boolean; audio: boolean; ios: boolean; reducedMotion: boolean } | null>(null);
