@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
   basePath: isGhPages ? "/bzzz" : "",
   assetPrefix: isGhPages ? "/bzzz/" : "",
   images: { unoptimized: true },
+  env: {
+    NEXT_PUBLIC_BASE_PATH: isGhPages ? "/bzzz" : "",
+  },
   turbopack: {
     root: path.join(configDir, ".."),
   },

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -22,7 +21,7 @@ export function DocsLayout({
       <div className="docs-main">
         <aside className="docs-toc">
           <Link href="/" className="docs-logo">
-            <Image src="/logo.svg" alt="bzzz" height={20} width={46} unoptimized />
+            <img src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/logo.svg`} alt="bzzz" height={20} />
           </Link>
           <div className="docs-toc-title">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { motion, useSpring } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
@@ -93,7 +92,7 @@ export default function HomePage() {
       <section className="hero-screen">
         <div className="hero-center">
           <motion.h1 style={{ x: logo.x, y: logo.y, rotate: logo.rotate }}>
-            <Image src="/logo.svg" alt="bzzz" height={64} width={148} unoptimized />
+            <img src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/logo.svg`} alt="bzzz" height={64} />
           </motion.h1>
 
           <motion.p
