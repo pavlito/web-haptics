@@ -1299,19 +1299,24 @@ pre code,
   bottom: 20px;
   width: 18px;
   border-radius: 6px;
-  background: var(--gray8);
+  background: var(--gray7);
   transform: translateX(-50%);
-  cursor: grab;
-  transition: background 0.15s, box-shadow 0.15s;
+  cursor: move;
+  transition: background 0.15s, box-shadow 0.15s, transform 0.15s;
 }
 
 .pe-bar:hover {
-  background: var(--gray10);
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
+  background: var(--gray12);
+  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.08);
+  transform: translateX(-50%) scale(1.15);
 }
 
 .pe-bar:active {
   cursor: grabbing;
+  background: var(--gray12);
+  box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.1);
+  transform: translateX(-50%) scale(1.2);
+  transition: none;
 }
 
 .pe-bar-lit {
