@@ -121,22 +121,33 @@ export function PatternEditor() {
     [totalDuration],
   );
 
-  // Click empty space → add pulse
+  // Click empty space → add pulse (only if no overlap)
   const handleTimelineClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       if (dragging) return;
-      // Don't add if clicking a bar
       if ((e.target as HTMLElement).closest(".pe-bar")) return;
       const pos = getTimelineMs(e.clientX, e.clientY);
       if (!pos) return;
 
+      const newDuration = 15;
+      const MIN_GAP = 5;
+      const newStart = pos.ms;
+      const newEnd = newStart + newDuration;
+
+      // Check overlap with existing pulses (including minimum gap)
+      const overlaps = pulses.some((p) => {
+        const pEnd = p.position + p.duration;
+        return newStart < pEnd + MIN_GAP && newEnd + MIN_GAP > p.position;
+      });
+      if (overlaps) return;
+
       setPulses((prev) => [
         ...prev,
-        { id: makeId(), position: pos.ms, duration: 15, intensity: pos.intensity },
+        { id: makeId(), position: pos.ms, duration: newDuration, intensity: pos.intensity },
       ]);
       setActivePreset("");
     },
-    [dragging, getTimelineMs],
+    [dragging, getTimelineMs, pulses],
   );
 
   // Drag bar for intensity (vertical) or position (horizontal)
@@ -165,9 +176,20 @@ export function PatternEditor() {
           const rect = el.getBoundingClientRect();
           const msPerPx = totalDuration / rect.width;
           const newPos = Math.max(0, Math.round(startPosition + dx * msPerPx));
-          setPulses((prev) =>
-            prev.map((p) => (p.id === id ? { ...p, position: newPos } : p)),
-          );
+
+          // Prevent overlap with other pulses
+          setPulses((prev) => {
+            const others = prev.filter((p) => p.id !== id);
+            const thisPulse = prev.find((p) => p.id === id);
+            if (!thisPulse) return prev;
+            const newEnd = newPos + thisPulse.duration;
+            const overlaps = others.some((p) => {
+              const pEnd = p.position + p.duration;
+              return newPos < pEnd + 5 && newEnd + 5 > p.position;
+            });
+            if (overlaps) return prev;
+            return prev.map((p) => (p.id === id ? { ...p, position: newPos } : p));
+          });
         } else {
           // Vertical = intensity
           const newIntensity = Math.max(0.05, Math.min(1, startIntensity + dy / TIMELINE_HEIGHT));
