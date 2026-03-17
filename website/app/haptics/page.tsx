@@ -83,7 +83,7 @@ export default function HapticsPage() {
         <p>Check what the current device supports. Returns a <code>CapabilityState</code> object.</p>
         <DocDemo
           code={`const caps = haptics.getCapabilities();
-// { haptics: boolean, audio: boolean, ios: boolean }`}
+// { haptics: boolean, audio: boolean, ios: boolean, reducedMotion: boolean }`}
         >
           <CapabilityDisplay />
         </DocDemo>
@@ -126,6 +126,7 @@ haptics.success(); // → { mode: "haptics" }`}
             <tr><td><code>haptics</code></td><td><code>boolean</code></td></tr>
             <tr><td><code>audio</code></td><td><code>boolean</code></td></tr>
             <tr><td><code>ios</code></td><td><code>boolean</code></td></tr>
+            <tr><td><code>reducedMotion</code></td><td><code>boolean</code></td></tr>
           </tbody>
         </table>
 

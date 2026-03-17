@@ -80,7 +80,7 @@ const result = haptics.success();
 console.log(result.mode); // "haptics" | "audio" | "none"
 
 const caps = haptics.getCapabilities();
-// { haptics: boolean, audio: boolean, ios: boolean }`}
+// { haptics: boolean, audio: boolean, ios: boolean, reducedMotion: boolean }`}
           />
         </section>
       </div>
