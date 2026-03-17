@@ -276,47 +276,25 @@ pre code,
   animation: screen-shake 0.3s ease;
 }
 
-/* Vignette + blur overlay — FPS bomb impact style */
-.hero-screen::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.5s ease-out;
-  z-index: 100;
-  box-shadow: inset 0 0 120px 60px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(0px);
+/* Color wash — whole background shifts to pattern color */
+.hero-flash-selection {
+  background: radial-gradient(ellipse at 50% 30%, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.03) 50%, transparent 80%);
 }
 
-.hero-flash-selection::after,
-.hero-flash-success::after,
-.hero-flash-error::after,
-.hero-flash-toggle::after,
-.hero-flash-snap::after {
-  opacity: 1;
-  transition: opacity 0.05s;
+.hero-flash-success {
+  background: radial-gradient(ellipse at 50% 30%, rgba(34, 197, 94, 0.08) 0%, rgba(34, 197, 94, 0.03) 50%, transparent 80%);
 }
 
-/* Per-pattern color tint on the vignette */
-.hero-flash-selection::after {
-  box-shadow: inset 0 0 150px 80px rgba(59, 130, 246, 0.15);
+.hero-flash-error {
+  background: radial-gradient(ellipse at 50% 30%, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.04) 50%, transparent 80%);
 }
 
-.hero-flash-success::after {
-  box-shadow: inset 0 0 150px 80px rgba(34, 197, 94, 0.15);
+.hero-flash-toggle {
+  background: radial-gradient(ellipse at 50% 30%, rgba(168, 85, 247, 0.08) 0%, rgba(168, 85, 247, 0.03) 50%, transparent 80%);
 }
 
-.hero-flash-error::after {
-  box-shadow: inset 0 0 150px 80px rgba(239, 68, 68, 0.18);
-}
-
-.hero-flash-toggle::after {
-  box-shadow: inset 0 0 150px 80px rgba(168, 85, 247, 0.15);
-}
-
-.hero-flash-snap::after {
-  box-shadow: inset 0 0 150px 80px rgba(245, 158, 11, 0.15);
+.hero-flash-snap {
+  background: radial-gradient(ellipse at 50% 30%, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.03) 50%, transparent 80%);
 }
 
 /* Content sections */
