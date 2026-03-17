@@ -824,7 +824,7 @@ pre code,
 .seq-tick-pulse .seq-tick-bar {
   width: 14px;
   height: 32px;
-  border-radius: 7px;
+  border-radius: 2px;
   background: var(--gray8);
   transition: background 0.4s ease-out, box-shadow 0.4s ease-out, transform 0.15s ease;
 }
@@ -1294,7 +1294,7 @@ pre code,
   position: absolute;
   bottom: 20px;
   width: 14px;
-  border-radius: 7px;
+  border-radius: 2px;
   background: var(--gray8);
   cursor: move;
   transform: translateX(-50%);
