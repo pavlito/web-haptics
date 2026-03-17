@@ -113,6 +113,10 @@ Silent ({ mode: "none" }) → SSR, Node.js
 
 web-haptics respects `prefers-reduced-motion: reduce`. When active, all methods silently return `{ mode: "none" }` — no vibration, no audio. Use `setEnabled(false)` for an in-app mute toggle.
 
+## Documentation
+
+Full docs, interactive demos, and pattern editor at [web-haptics.vercel.app](https://web-haptics.vercel.app)
+
 ## License
 
 MIT

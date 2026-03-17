@@ -1,6 +1,9 @@
+"use client";
+
 import { useEffect, useRef } from "react";
 import { createHaptics, haptics } from "./runtime";
 import type {
+  CapabilityState,
   CreateHapticsOptions,
   HapticsInstance,
   PatternBlock,
@@ -14,6 +17,7 @@ type UseHapticsReturn = {
   toggle: () => PlaybackResult;
   snap: () => PlaybackResult;
   play: (pattern: readonly PatternBlock[]) => PlaybackResult;
+  getCapabilities: () => CapabilityState;
   isEnabled: () => boolean;
   setEnabled: (enabled: boolean) => void;
 };
@@ -31,6 +35,7 @@ export function useHaptics(): UseHapticsReturn {
     toggle: haptics.toggle,
     snap: haptics.snap,
     play: haptics.play,
+    getCapabilities: haptics.getCapabilities,
     isEnabled: haptics.isEnabled,
     setEnabled: haptics.setEnabled,
   };
@@ -39,6 +44,7 @@ export function useHaptics(): UseHapticsReturn {
 type UseCreateHapticsReturn = {
   play: (nameOrPattern: string | readonly PatternBlock[]) => PlaybackResult;
   register: (name: string, pattern: readonly PatternBlock[]) => void;
+  getCapabilities: () => CapabilityState;
   isEnabled: () => boolean;
   setEnabled: (enabled: boolean) => void;
 };
@@ -69,6 +75,7 @@ export function useCreateHaptics(
   return {
     play: instance.play,
     register: instance.register,
+    getCapabilities: instance.getCapabilities,
     isEnabled: instance.isEnabled,
     setEnabled: instance.setEnabled,
   };

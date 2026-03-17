@@ -25,6 +25,7 @@ describe("react entry point", () => {
     expect(typeof api.toggle).toBe("function");
     expect(typeof api.snap).toBe("function");
     expect(typeof api.play).toBe("function");
+    expect(typeof api.getCapabilities).toBe("function");
     expect(typeof api.isEnabled).toBe("function");
     expect(typeof api.setEnabled).toBe("function");
   });
