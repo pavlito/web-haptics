@@ -86,7 +86,7 @@ export default function HomePage() {
         </div>
 
         <div className="v2-hero-text">
-          <h1>bzzz</h1>
+          <h1><img src="/logo.svg" alt="bzzz" height={32} /></h1>
           <p>Haptic feedback for the web. Native vibration + audio fallback.</p>
 
           <div className="v2-buttons">

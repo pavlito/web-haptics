@@ -21,8 +21,7 @@ export function DocsLayout({
       <div className="docs-main">
         <aside className="docs-toc">
           <Link href="/" className="docs-logo">
-            <strong>bzzz</strong>{" "}
-            <span className="docs-logo-by">by Pavle Lucic</span>
+            <img src="/logo.svg" alt="bzzz" height={20} />
           </Link>
           <div className="docs-toc-title">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
