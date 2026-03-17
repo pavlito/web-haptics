@@ -41,13 +41,13 @@ export default function HomePage() {
   const [playKey, setPlayKey] = useState(0);
   const animRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  // Different spring configs per element — heavier = more movement, slower settle
-  const logo = useShakeSpring(1.2, 600, 8);      // heavy, wobbly
-  const subtitle = useShakeSpring(0.6, 800, 12);  // light, snappy
-  const buttons = useShakeSpring(0.8, 700, 10);   // medium
-  const bar = useShakeSpring(1.5, 500, 7);        // heaviest, most wobble
-  const codeLine = useShakeSpring(0.5, 900, 14);  // lightest
-  const actions = useShakeSpring(1.0, 600, 9);    // medium-heavy
+  // Snappy springs — high stiffness, high damping = fast snap back
+  const logo = useShakeSpring(0.3, 2000, 15);      // heavy hit, fast settle
+  const subtitle = useShakeSpring(0.2, 2500, 20);  // light, very snappy
+  const buttons = useShakeSpring(0.25, 2200, 18);  // medium
+  const bar = useShakeSpring(0.4, 1800, 12);       // heaviest, slight wobble
+  const codeLine = useShakeSpring(0.15, 3000, 25); // lightest, instant
+  const actions = useShakeSpring(0.3, 2000, 16);   // medium
 
   const kick = useCallback((name: string) => {
     const intensity = intensityMap[name] ?? 0.6;
