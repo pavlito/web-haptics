@@ -12,6 +12,7 @@ export default function GettingStartedPage() {
         { id: "installation", label: "Installation" },
         { id: "basic-usage", label: "Basic usage" },
         { id: "trigger-from-interaction", label: "Trigger from interaction" },
+        { id: "accessibility", label: "Accessibility" },
       ]}
       next={{ href: "/haptics", label: "haptics" }}
     >
@@ -46,6 +47,14 @@ haptics.success();`}
         >
           <TriggerButton method="success" />
         </DocDemo>
+      </section>
+      <section>
+        <h2 id="accessibility">Accessibility</h2>
+        <p>
+          web-haptics automatically respects the <code>prefers-reduced-motion</code> media
+          query. Users who have enabled reduced motion in their OS settings will
+          not receive any haptic or audio feedback.
+        </p>
       </section>
     </DocsLayout>
   );

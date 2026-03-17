@@ -20,9 +20,16 @@ const sidebarLinks = [
     items: [
       { href: "/haptics", label: "haptics" },
       { href: "/create-haptics", label: "createHaptics()" },
+      { href: "/react", label: "React" },
     ],
   },
-  { group: "Guides", items: [{ href: "/fallbacks", label: "Fallbacks" }] },
+  {
+    group: "Guides",
+    items: [
+      { href: "/fallbacks", label: "Fallbacks" },
+      { href: "/editor", label: "Pattern Editor" },
+    ],
+  },
 ];
 
 export function DocsLayout({

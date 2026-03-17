@@ -13,7 +13,7 @@ export default function CreateHapticsPage() {
         { id: "register", label: "register()" },
       ]}
       prev={{ href: "/haptics", label: "haptics" }}
-      next={{ href: "/fallbacks", label: "Fallbacks" }}
+      next={{ href: "/react", label: "React" }}
     >
       <section>
         <h2 id="basic-usage">Basic usage</h2>

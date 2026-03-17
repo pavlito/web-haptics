@@ -1,4 +1,5 @@
 import { CapabilityDisplay } from "../../components/capability-display";
+import { CodeBlock } from "../../components/code-block";
 import { DocDemo } from "../../components/doc-demo";
 import { DocsLayout } from "../../components/docs-layout";
 import { PlayDemo } from "../../components/play-demo";
@@ -17,6 +18,7 @@ export default function HapticsPage() {
         { id: "snap", label: "snap()" },
         { id: "play", label: "play()" },
         { id: "get-capabilities", label: "getCapabilities()" },
+        { id: "set-enabled", label: "setEnabled" },
         { id: "api-reference", label: "API Reference" },
       ]}
       prev={{ href: "/getting-started", label: "Getting Started" }}
@@ -85,6 +87,20 @@ export default function HapticsPage() {
         >
           <CapabilityDisplay />
         </DocDemo>
+      </section>
+      <section>
+        <h2 id="set-enabled">setEnabled</h2>
+        <p>
+          Globally enable or disable haptic feedback. When disabled, all
+          methods return <code>{`{ mode: "none" }`}</code>.
+        </p>
+        <CodeBlock
+          code={`haptics.setEnabled(false); // mute all feedback
+haptics.success(); // → { mode: "none" }
+
+haptics.setEnabled(true); // resume
+haptics.success(); // → { mode: "haptics" }`}
+        />
       </section>
       <section>
         <h2 id="api-reference">API Reference</h2>
