@@ -105,6 +105,7 @@ describe("haptics runtime", () => {
       haptics: true,
       audio: true,
       ios: false,
+      reducedMotion: false,
     });
   });
 
@@ -221,6 +222,7 @@ describe("createHaptics", () => {
       haptics: true,
       audio: true,
       ios: false,
+      reducedMotion: false,
     });
   });
 });
@@ -477,6 +479,47 @@ describe("pattern validation", () => {
     setNavigatorVibrate(vibrate);
     haptics.play([{ type: "pulse", duration: 25, intensity: 5 }]);
     expect(vibrate).toHaveBeenCalledWith([25]);
+  });
+});
+
+describe("prefers-reduced-motion", () => {
+  it("returns none when prefers-reduced-motion is set even with all capabilities", () => {
+    setNavigatorVibrate(() => true);
+    setAudioContext(true);
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: query === "(prefers-reduced-motion: reduce)" || query === "(pointer: coarse)",
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      onchange: null,
+      dispatchEvent: vi.fn(),
+    }));
+
+    const result = haptics.success();
+    expect(result.mode).toBe("none");
+  });
+
+  it("includes reducedMotion in capability state", () => {
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: query === "(prefers-reduced-motion: reduce)",
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      onchange: null,
+      dispatchEvent: vi.fn(),
+    }));
+
+    const caps = haptics.getCapabilities();
+    expect(caps.reducedMotion).toBe(true);
+  });
+
+  it("reducedMotion is false by default", () => {
+    const caps = haptics.getCapabilities();
+    expect(caps.reducedMotion).toBe(false);
   });
 });
 

@@ -28,6 +28,7 @@ export type CapabilityState = {
   haptics: boolean;
   audio: boolean;
   ios: boolean;
+  reducedMotion: boolean;
 };
 
 export type PatternRegistry = Record<string, PatternBlock[]>;

@@ -40,11 +40,17 @@ function hasVibrationHardware(): boolean {
   return false;
 }
 
+function prefersReducedMotion(): boolean {
+  if (typeof matchMedia === "undefined") return false;
+  return matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
 export function getCapabilityState(): CapabilityState {
   return {
     haptics: hasVibrationHardware(),
     audio: Boolean(getAudioContextConstructor()),
     ios: isIOS(),
+    reducedMotion: prefersReducedMotion(),
   };
 }
 

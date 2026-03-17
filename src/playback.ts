@@ -86,8 +86,9 @@ function validatePattern(pattern: readonly PatternBlock[]): PatternBlock[] {
 }
 
 export function playPattern(pattern: readonly PatternBlock[]): PlaybackResult {
-  const validated = validatePattern(pattern);
   const capabilities = getCapabilityState();
+  if (capabilities.reducedMotion) return { mode: "none" };
+  const validated = validatePattern(pattern);
   const vibrationPattern = toVibrationPattern(validated);
 
   if (capabilities.ios && validated.some((b) => b.type === "pulse" && b.duration >= 5)) {
