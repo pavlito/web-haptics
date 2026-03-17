@@ -6,18 +6,11 @@ import { motion, useSpring } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
 import type { PlaybackMode } from "bzzz";
 import { defaultPatterns, haptics } from "bzzz";
+import { patternMeta } from "../lib/pattern-meta";
 import { PatternBar } from "../components/pattern-bar";
 import { InstallCode } from "../components/install-code";
 import { CodeBlock } from "../components/code-block";
 import { DemoPanel } from "../components/demo-panel";
-
-const patterns = [
-  { name: "selection" as const, label: "Selection", code: "haptics.selection()" },
-  { name: "success" as const, label: "Success", code: "haptics.success()" },
-  { name: "error" as const, label: "Error", code: "haptics.error()" },
-  { name: "toggle" as const, label: "Toggle", code: "haptics.toggle()" },
-  { name: "snap" as const, label: "Snap", code: "haptics.snap()" },
-];
 
 // Intensity per pattern — how hard the "impact" hits
 const intensityMap: Record<string, number> = {
@@ -37,7 +30,7 @@ function useShakeSpring(mass: number, stiffness: number, damping: number) {
 
 
 export default function HomePage() {
-  const [active, setActive] = useState(patterns[1]);
+  const [active, setActive] = useState(patternMeta[1]);
   const [mode, setMode] = useState<PlaybackMode | null>(null);
   const [animKey, setAnimKey] = useState<string | null>(null);
   const [playKey, setPlayKey] = useState(0);
@@ -72,7 +65,7 @@ export default function HomePage() {
     setTimeout(() => jolt(actions), 40);
   }, [logo, buttons, bar, subtitle, codeLine, actions, qr]);
 
-  function trigger(p: (typeof patterns)[number]) {
+  function trigger(p: (typeof patternMeta)[number]) {
     const result = haptics[p.name]();
     setActive(p);
     setMode(result.mode);
@@ -107,7 +100,7 @@ export default function HomePage() {
               className="hero-buttons-row"
               style={{ x: buttons.x, y: buttons.y, rotate: buttons.rotate }}
             >
-              {patterns.map((p) => (
+              {patternMeta.map((p) => (
                 <button
                   key={p.name}
                   type="button"

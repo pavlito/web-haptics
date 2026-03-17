@@ -16,40 +16,71 @@ type PatternBarProps = {
 
 const MAX_BAR_HEIGHT = 32;
 const MIN_BAR_HEIGHT = 8;
+const SLOWDOWN = 3; // visual slowdown factor for readability
 
 export function PatternBar({ pattern, playKey, scale = 1 }: PatternBarProps) {
-  const [lit, setLit] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const [litIndices, setLitIndices] = useState<Set<number>>(new Set());
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const totalDuration = pattern.reduce((sum, b) => sum + b.duration, 0);
 
   useEffect(() => {
     if (playKey === 0) return;
 
-    if (timerRef.current) clearTimeout(timerRef.current);
-    setLit(true);
-    timerRef.current = setTimeout(() => setLit(false), 400);
+    // Clear previous animation
+    for (const id of timersRef.current) clearTimeout(id);
+    timersRef.current = [];
+    setLitIndices(new Set());
+
+    // Schedule each pulse to light up at its actual start time (× SLOWDOWN)
+    let cursor = 0;
+    const newTimers: ReturnType<typeof setTimeout>[] = [];
+
+    pattern.forEach((block, i) => {
+      if (block.type === "pulse") {
+        const onDelay = cursor * SLOWDOWN;
+        const offDelay = (cursor + block.duration) * SLOWDOWN;
+
+        newTimers.push(
+          setTimeout(() => {
+            setLitIndices((prev) => new Set([...prev, i]));
+          }, onDelay),
+        );
+        newTimers.push(
+          setTimeout(() => {
+            setLitIndices((prev) => {
+              const next = new Set(prev);
+              next.delete(i);
+              return next;
+            });
+          }, offDelay),
+        );
+      }
+      cursor += block.duration;
+    });
+
+    timersRef.current = newTimers;
 
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      for (const id of newTimers) clearTimeout(id);
     };
-  }, [playKey]);
+  }, [playKey, pattern]);
 
   if (totalDuration === 0) return null;
 
-  let cursor = 0;
+  let cursorPct = 0;
   const items: { type: string; startPct: number; widthPct: number; duration: number; intensity: number; index: number }[] = [];
 
   pattern.forEach((block, i) => {
     items.push({
       type: block.type,
-      startPct: (cursor / totalDuration) * 100,
+      startPct: (cursorPct / totalDuration) * 100,
       widthPct: (block.duration / totalDuration) * 100,
       duration: block.duration,
       intensity: block.type === "pulse" ? (block.intensity ?? 1) : 0,
       index: i,
     });
-    cursor += block.duration;
+    cursorPct += block.duration;
   });
 
   return (
@@ -64,7 +95,7 @@ export function PatternBar({ pattern, playKey, scale = 1 }: PatternBarProps) {
           return (
             <div
               key={item.index}
-              className={`seq-tick seq-tick-${item.type} ${lit && item.type === "pulse" ? "seq-tick-active" : ""}`}
+              className={`seq-tick seq-tick-${item.type} ${litIndices.has(item.index) ? "seq-tick-active" : ""}`}
               style={{
                 left: `${item.startPct + item.widthPct / 2}%`,
               }}

@@ -3,22 +3,12 @@
 import { useState, useRef } from "react";
 import type { PlaybackMode } from "bzzz";
 import { haptics } from "bzzz";
+import { patternMeta } from "../lib/pattern-meta";
 
-const patterns = [
-  { name: "selection", label: "Selection", action: () => haptics.selection() },
-  { name: "success", label: "Success", action: () => haptics.success() },
-  { name: "error", label: "Error", action: () => haptics.error() },
-  { name: "toggle", label: "Toggle", action: () => haptics.toggle() },
-  { name: "snap", label: "Snap", action: () => haptics.snap() },
-];
-
-const codeMap: Record<string, string> = {
-  selection: "haptics.selection()",
-  success: "haptics.success()",
-  error: "haptics.error()",
-  toggle: "haptics.toggle()",
-  snap: "haptics.snap()",
-};
+const patterns = patternMeta.map(p => ({
+  ...p,
+  action: () => haptics[p.name](),
+}));
 
 type Toast = {
   id: number;
@@ -71,7 +61,7 @@ export function DemoPanel() {
       </div>
       <div className="demo-area">
         <div className="demo-code">
-          <pre className="code">{codeMap[active]}</pre>
+          <pre className="code">{patterns.find(p => p.name === active)?.code}</pre>
         </div>
         <div className="demo-toasts">
           {toasts.map((t) => (
