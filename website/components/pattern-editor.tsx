@@ -76,7 +76,7 @@ function patternToCode(pulses: Pulse[]): string {
 
 const TIMELINE_MS = 500;
 const BLOCK_WIDTH = 20; // fixed width for all blocks (ms)
-const MIN_GAP = 5;
+const MIN_GAP = 8;
 
 export function PatternEditor() {
   const [pulses, setPulses] = useState<Pulse[]>(
