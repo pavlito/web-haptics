@@ -237,7 +237,6 @@ export function PatternEditor() {
     // Clear previous animation
     for (const id of playTimersRef.current) clearTimeout(id);
     playTimersRef.current = [];
-    setLitIds(new Set());
 
     // Schedule per-block animation
     // Fixed SLOWDOWN=3 (PatternBar uses adaptive, but PatternEditor has a fixed
@@ -246,6 +245,7 @@ export function PatternEditor() {
     let cursor = 0;
     const sorted = [...pulses].sort((a, b) => a.position - b.position);
     const newTimers: ReturnType<typeof setTimeout>[] = [];
+    const immediateIds = new Set<number>();
 
     for (const p of sorted) {
       const gapBefore = p.position - cursor;
@@ -254,11 +254,16 @@ export function PatternEditor() {
       const onDelay = cursor * SLOWDOWN;
       const offDelay = (cursor + p.duration) * SLOWDOWN;
 
-      newTimers.push(
-        setTimeout(() => {
-          setLitIds((prev) => new Set([...prev, p.id]));
-        }, onDelay),
-      );
+      if (onDelay === 0) {
+        immediateIds.add(p.id);
+      } else {
+        newTimers.push(
+          setTimeout(() => {
+            setLitIds((prev) => new Set([...prev, p.id]));
+          }, onDelay),
+        );
+      }
+
       newTimers.push(
         setTimeout(() => {
           setLitIds((prev) => {
@@ -271,6 +276,9 @@ export function PatternEditor() {
 
       cursor = p.position + p.duration;
     }
+
+    // Set first pulse(s) immediately — no async hop
+    setLitIds(immediateIds);
 
     playTimersRef.current = newTimers;
   }, [pulses]);

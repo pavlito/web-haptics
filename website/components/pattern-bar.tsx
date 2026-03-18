@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 type Block = {
   type: "pulse" | "gap";
@@ -24,30 +24,37 @@ export function PatternBar({ pattern, playKey, scale = 1 }: PatternBarProps) {
 
   const totalDuration = pattern.reduce((sum, b) => sum + b.duration, 0);
 
-  useEffect(() => {
+  // useLayoutEffect runs before paint — eliminates 1-frame delay vs useEffect
+  useLayoutEffect(() => {
     if (playKey === 0) return;
 
     // Clear previous animation
     for (const id of timersRef.current) clearTimeout(id);
     timersRef.current = [];
-    setLitIndices(new Set());
 
     const slowdown = totalDuration > 0 ? Math.max(3, MIN_ANIM_MS / totalDuration) : 3;
 
     // Schedule each pulse to light up at its actual start time
     let cursor = 0;
     const newTimers: ReturnType<typeof setTimeout>[] = [];
+    const immediateIndices = new Set<number>();
 
     pattern.forEach((block, i) => {
       if (block.type === "pulse") {
         const onDelay = cursor * slowdown;
         const offDelay = (cursor + block.duration) * slowdown;
 
-        newTimers.push(
-          setTimeout(() => {
-            setLitIndices((prev) => new Set([...prev, i]));
-          }, onDelay),
-        );
+        if (onDelay === 0) {
+          // First pulse: set synchronously to avoid setTimeout hop
+          immediateIndices.add(i);
+        } else {
+          newTimers.push(
+            setTimeout(() => {
+              setLitIndices((prev) => new Set([...prev, i]));
+            }, onDelay),
+          );
+        }
+
         newTimers.push(
           setTimeout(() => {
             setLitIndices((prev) => {
@@ -60,6 +67,9 @@ export function PatternBar({ pattern, playKey, scale = 1 }: PatternBarProps) {
       }
       cursor += block.duration;
     });
+
+    // Set first pulse immediately — no async hop
+    setLitIndices(immediateIndices);
 
     timersRef.current = newTimers;
 
