@@ -1030,7 +1030,7 @@ pre code,
   font-size: 10px;
   color: var(--gray9);
   white-space: nowrap;
-  transition: color 0.4s ease-out;
+  transition: color 0.08s ease-out;
 }
 
 .seq-tick-active .seq-tick-label {
