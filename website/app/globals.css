@@ -1493,7 +1493,7 @@ pre code,
   padding: 0 8px;
 }
 
-/* Spine line */
+/* Spine line — matches PatternBar seq-spine */
 .pe-timeline::before {
   content: "";
   position: absolute;
@@ -1501,7 +1501,7 @@ pre code,
   left: 0;
   right: 0;
   height: 2px;
-  background: var(--gray5);
+  background: var(--gray7);
   border-radius: 1px;
   pointer-events: none;
 }
@@ -1526,7 +1526,7 @@ pre code,
   background: var(--gray8);
   cursor: move;
   transform: translateX(-50%);
-  transition: background 0.15s, box-shadow 0.15s;
+  transition: background 0.08s ease-out, box-shadow 0.08s ease-out, transform 0.08s ease, width 0.08s ease;
 }
 
 .pe-block:hover {
@@ -1541,7 +1541,15 @@ pre code,
 
 .pe-block-lit {
   background: #22c55e !important;
-  box-shadow: 0 0 10px rgba(34, 197, 94, 0.5) !important;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.5), 0 0 20px rgba(34, 197, 94, 0.2) !important;
+  transform: translateX(-50%) scaleY(1.2) !important;
+  width: 18px !important;
+  transition: background 0.02s, box-shadow 0.02s, transform 0.02s, width 0.02s !important;
+}
+
+.pe-block-lit .pe-block-label {
+  color: #16a34a;
+  transition: color 0.02s;
 }
 
 /* Top edge — wider hit area for intensity drag */
@@ -1821,6 +1829,14 @@ pre code,
   }
 
   .trigger-btn {
+    transition: none !important;
+  }
+
+  .pe-block {
+    transition: none !important;
+  }
+
+  .pe-block-lit {
     transition: none !important;
   }
 }

@@ -46,14 +46,14 @@ export default function HomePage() {
 
   const kick = useCallback((name: string) => {
     const intensity = intensityMap[name] ?? 0.6;
-    const force = 14 * intensity;
+    const force = 6 * intensity;
 
-    // Random direction per element — all get full force, mass handles the rest
+    // Subtle jolt — keep layout stable, avoid chaotic displacement
     function jolt(spring: ReturnType<typeof useShakeSpring>) {
       const angle = Math.random() * Math.PI * 2;
       spring.x.set(Math.cos(angle) * force);
       spring.y.set(Math.sin(angle) * force);
-      spring.rotate.set((Math.random() - 0.5) * 4 * intensity);
+      spring.rotate.set((Math.random() - 0.5) * 1.5 * intensity);
     }
 
     jolt(logo);
