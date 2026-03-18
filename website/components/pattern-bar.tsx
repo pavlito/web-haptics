@@ -16,6 +16,7 @@ type PatternBarProps = {
 
 const MAX_BAR_HEIGHT = 32;
 const MIN_BAR_HEIGHT = 8;
+const MIN_VISIBLE_MS = 80; // minimum time a bar stays lit so humans can see it
 
 export function PatternBar({ pattern, playKey, scale = 1 }: PatternBarProps) {
   const [litIndices, setLitIndices] = useState<Set<number>>(new Set());
@@ -30,7 +31,8 @@ export function PatternBar({ pattern, playKey, scale = 1 }: PatternBarProps) {
     for (const id of timersRef.current) clearTimeout(id);
     timersRef.current = [];
 
-    // Real-time: bars light at actual pattern ms — synced with haptic playback
+    // Bars light at real pattern start times (synced with haptic)
+    // but stay lit for at least MIN_VISIBLE_MS so humans can perceive them
     let cursor = 0;
     const newTimers: ReturnType<typeof setTimeout>[] = [];
     const immediateIndices = new Set<number>();
@@ -38,7 +40,7 @@ export function PatternBar({ pattern, playKey, scale = 1 }: PatternBarProps) {
     pattern.forEach((block, i) => {
       if (block.type === "pulse") {
         const onDelay = cursor;
-        const offDelay = cursor + block.duration;
+        const offDelay = cursor + Math.max(block.duration, MIN_VISIBLE_MS);
 
         if (onDelay === 0) {
           immediateIndices.add(i);

@@ -249,7 +249,7 @@ export function PatternEditor() {
       if (gapBefore > 0) cursor = p.position;
 
       const onDelay = cursor;
-      const offDelay = cursor + p.duration;
+      const offDelay = cursor + Math.max(p.duration, 80);
 
       if (onDelay === 0) {
         immediateIds.add(p.id);
