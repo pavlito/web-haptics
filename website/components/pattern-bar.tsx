@@ -16,7 +16,7 @@ type PatternBarProps = {
 
 const MAX_BAR_HEIGHT = 32;
 const MIN_BAR_HEIGHT = 8;
-const SLOWDOWN = 3; // visual slowdown factor for readability
+const MIN_ANIM_MS = 300; // minimum animation duration for readability
 
 export function PatternBar({ pattern, playKey, scale = 1 }: PatternBarProps) {
   const [litIndices, setLitIndices] = useState<Set<number>>(new Set());
@@ -32,14 +32,16 @@ export function PatternBar({ pattern, playKey, scale = 1 }: PatternBarProps) {
     timersRef.current = [];
     setLitIndices(new Set());
 
-    // Schedule each pulse to light up at its actual start time (× SLOWDOWN)
+    const slowdown = totalDuration > 0 ? Math.max(3, MIN_ANIM_MS / totalDuration) : 3;
+
+    // Schedule each pulse to light up at its actual start time
     let cursor = 0;
     const newTimers: ReturnType<typeof setTimeout>[] = [];
 
     pattern.forEach((block, i) => {
       if (block.type === "pulse") {
-        const onDelay = cursor * SLOWDOWN;
-        const offDelay = (cursor + block.duration) * SLOWDOWN;
+        const onDelay = cursor * slowdown;
+        const offDelay = (cursor + block.duration) * slowdown;
 
         newTimers.push(
           setTimeout(() => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { defaultPatterns, haptics } from "bzzz";
 import type { PatternBlock } from "bzzz";
 import { CodeBlock } from "./code-block";
@@ -86,7 +86,8 @@ export function PatternEditor() {
   const [tab, setTab] = useState<"editor" | "code">("editor");
   const [copied, setCopied] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [playLit, setPlayLit] = useState(false);
+  const [litIds, setLitIds] = useState<Set<number>>(new Set());
+  const playTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const timelineRef = useRef<HTMLDivElement>(null);
 
   // Fixed timeline — no dynamic rescaling so positions stay visually stable
@@ -230,10 +231,55 @@ export function PatternEditor() {
   }, []);
 
   const play = useCallback(() => {
-    haptics.play(pulsesToPattern(pulses));
-    setPlayLit(true);
-    setTimeout(() => setPlayLit(false), 400);
+    const pattern = pulsesToPattern(pulses);
+    haptics.play(pattern);
+
+    // Clear previous animation
+    for (const id of playTimersRef.current) clearTimeout(id);
+    playTimersRef.current = [];
+    setLitIds(new Set());
+
+    // Schedule per-block animation
+    // Fixed SLOWDOWN=3 (PatternBar uses adaptive, but PatternEditor has a fixed
+    // 500ms timeline where user-created patterns are typically longer)
+    const SLOWDOWN = 3;
+    let cursor = 0;
+    const sorted = [...pulses].sort((a, b) => a.position - b.position);
+    const newTimers: ReturnType<typeof setTimeout>[] = [];
+
+    for (const p of sorted) {
+      const gapBefore = p.position - cursor;
+      if (gapBefore > 0) cursor = p.position;
+
+      const onDelay = cursor * SLOWDOWN;
+      const offDelay = (cursor + p.duration) * SLOWDOWN;
+
+      newTimers.push(
+        setTimeout(() => {
+          setLitIds((prev) => new Set([...prev, p.id]));
+        }, onDelay),
+      );
+      newTimers.push(
+        setTimeout(() => {
+          setLitIds((prev) => {
+            const next = new Set(prev);
+            next.delete(p.id);
+            return next;
+          });
+        }, offDelay),
+      );
+
+      cursor = p.position + p.duration;
+    }
+
+    playTimersRef.current = newTimers;
   }, [pulses]);
+
+  useEffect(() => {
+    return () => {
+      for (const id of playTimersRef.current) clearTimeout(id);
+    };
+  }, []);
 
   const copyCode = useCallback(async () => {
     try {
@@ -311,7 +357,7 @@ export function PatternEditor() {
               return (
                 <div
                   key={p.id}
-                  className={`pe-block ${playLit ? "pe-block-lit" : ""}`}
+                  className={`pe-block ${litIds.has(p.id) ? "pe-block-lit" : ""}`}
                   style={{
                     left: `${msToPercent(p.position + p.duration / 2)}%`,
                     height: `${barH}px`,
