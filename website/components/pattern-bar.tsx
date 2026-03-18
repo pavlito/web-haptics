@@ -88,7 +88,10 @@ export function PatternBar({ pattern, playKey, scale = 1 }: PatternBarProps) {
   return (
     <div className="seq">
       <div className="seq-timeline" style={scale !== 1 ? { height: 56 * scale } : undefined}>
-        <div className="seq-spine" />
+        <div
+          className="seq-spine"
+          style={scale !== 1 ? { height: `${2 * scale}px`, bottom: `${18 * scale}px` } : undefined}
+        />
         {items.map((item) => {
           const barHeight = item.type === "pulse"
             ? (MIN_BAR_HEIGHT + (MAX_BAR_HEIGHT - MIN_BAR_HEIGHT) * item.intensity) * scale
