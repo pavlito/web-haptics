@@ -870,3 +870,436 @@ No test file exists for `src/react.ts`. The `useHaptics` and `useCreateHaptics` 
 | CSS design system | 3 | 3 |
 | Orphaned code & missed | 10 | 8 (J1, J6 are N/A) |
 | **Total** | **51** | **49 active** |
+
+---
+
+# K. VISUALIZATION DEEP ANALYSIS (post-fix)
+
+Analysis of all vibration pattern visualization components after consistency fixes.
+
+## Components overview
+
+| Component | File | Used on | Rendering | Animation type |
+|-----------|------|---------|-----------|---------------|
+| **PatternBar** | `pattern-bar.tsx` | homepage, docs (PatternDemo, PlayDemo, TriggerButton), v3 | CSS DOM | Per-block sequential (SLOWDOWN=3) |
+| **WaveformCanvas** | `waveform-canvas.tsx` | v1 | HTML5 Canvas | Playhead sweep (×3) |
+| **DrawCanvas** | `draw-canvas.tsx` | **NOWHERE** — dead code | HTML5 Canvas | Static blocks only |
+| **PatternEditor** | `pattern-editor.tsx` | docs, /editor | CSS DOM | All-at-once 400ms flash |
+
+---
+
+## K1. DrawCanvas is dead code — never imported
+
+`draw-canvas.tsx` exports `DrawCanvas` but no file in the website imports it. Zero references:
+
+```
+grep -r "DrawCanvas" website/ --include="*.tsx"
+→ only draw-canvas.tsx itself (type definition + export)
+```
+
+258 lines of unused component code + CSS classes (`pe-canvas-wrap`, `pe-canvas-label`, `pe-canvas-hint`) have no styles defined in globals.css either (verified: zero matches for `canvas-wrap`, `canvas-label`, `canvas-hint`).
+
+**Recommendation:** Delete `website/components/draw-canvas.tsx`.
+
+---
+
+## K2. PatternEditor still uses all-at-once 400ms flash
+
+`pattern-editor.tsx:232-235`:
+```ts
+const play = useCallback(() => {
+  haptics.play(pulsesToPattern(pulses));
+  setPlayLit(true);
+  setTimeout(() => setPlayLit(false), 400);
+}, [pulses]);
+```
+
+`playLit` applies `.pe-block-lit` to ALL pulse blocks simultaneously (line 314):
+```tsx
+className={`pe-block ${playLit ? "pe-block-lit" : ""}`}
+```
+
+PatternBar was rewritten with per-block sequential animation (SLOWDOWN=3), but PatternEditor still uses the old approach. This means:
+
+- **Docs PatternDemo** (uses PatternBar): blocks light up sequentially
+- **Docs PatternEditor** (uses pe-block): all blocks flash at once
+
+Both are on the same docs page (`/docs`), visible without scrolling much. The inconsistency is jarring.
+
+---
+
+## K3. PatternBar label transition is slower than bar transition
+
+CSS for bar off-transition: `transition: background 0.08s ease-out` (line 1004)
+CSS for label off-transition: `transition: color 0.4s ease-out` (line 1033)
+
+When a block turns off, the bar fades in 80ms but the label stays green for 400ms. On the selection pattern (90ms total animation), the first label is still green when the second pulse fires. Labels blend into a continuous green state instead of showing discrete pulses.
+
+The active-state transitions are both fast (0.02s), so labels light up instantly. But the asymmetric off-transition means labels linger 5× longer than bars.
+
+---
+
+## K4. PatternBar scaleY(1.2) causes visual overflow at scale=2.5
+
+When `seq-tick-active` applies `transform: scaleY(1.2)` (line 1010), the bar grows 20% taller. At `scale=1`, max bar = 32px → 38.4px (fine). At `scale=2.5` (v3 page), max bar = 80px → 96px, which can overflow the `seq-timeline` container (height: 56 × 2.5 = 140px).
+
+The bar starts at `bottom: 0` with flex column layout. The bar grows upward from center due to scaleY, so half the overflow goes above the container. At 80px bar height, 96px scaled, the overflow above is (96-80)/2 = 8px, which pushes into the container padding but may clip.
+
+---
+
+## K5. PatternBar gap ticks are nearly invisible for short gaps
+
+Gap ticks are 2px wide, gray5 color, with 14px height (lines 1015-1021). For the selection pattern:
+- Total duration: 30ms
+- Gap is 12ms = 40% of width
+- Two pulse ticks at ~13% and ~73%
+- Gap tick at ~43%
+
+At normal width this is fine, but the gap tick itself is barely distinguishable from the spine line it sits on (both use gray5, gap is 2px, spine is 2px). The gap tick's purpose is to show "there's a pause here" but visually it reads as a tiny notch on the spine.
+
+---
+
+## K6. WaveformCanvas gap noise is non-deterministic
+
+`waveform-canvas.tsx:108`: `const tiny = 2 + Math.random() * 3;`
+
+This runs inside the `draw()` function which is called every animation frame (~60fps). Each frame redraws ALL gaps with new random values. During the playhead sweep animation, gap regions continuously jitter. The same pattern looks different on every replay.
+
+This is a stylistic choice (organic feel) but creates visual noise during what should be a smooth sweep animation.
+
+---
+
+## K7. WaveformCanvas and PatternBar use same 3× slowdown but look very different
+
+Both use `totalDuration * 3` (or SLOWDOWN=3), so a 175ms success pattern plays in 525ms on both. But:
+
+- **PatternBar**: discrete blocks light up and turn off. Green bars appear and disappear. Clear temporal structure.
+- **WaveformCanvas**: continuous playhead sweep. Everything left of the line is green, everything right is gray. After animation, entire waveform stays lit.
+
+The WaveformCanvas never "turns off" individual blocks — it only shows a sweep that leaves everything lit permanently. PatternBar shows discrete on/off per block. These are complementary but not comparable views of the same data.
+
+---
+
+## K8. PatternEditor block height formula matches PatternBar but not WaveformCanvas
+
+| Component | Formula | Selection pulse 0 (intensity 0.4) | Snap pulse 4 (intensity 1.0) |
+|-----------|---------|-----------------------------------|------------------------------|
+| PatternBar | `8 + 24 × intensity` | 17.6px | 32px |
+| PatternEditor | `8 + 24 × intensity` | 17.6px | 32px |
+| WaveformCanvas | `intensity × h × 0.38` | 24.3px (at h=160) | 60.8px |
+
+PatternBar and PatternEditor use identical linear mapping. WaveformCanvas uses a different formula that produces different proportional relationships. A 0.4 intensity pulse is 55% of max in PatternBar but only 40% of max in WaveformCanvas. This means the visual "weight" of low-intensity pulses differs between views.
+
+---
+
+## K9. No visualization shows actual real-time playback
+
+All visualizations operate on a slowed-down timescale:
+- PatternBar: 3× slower
+- WaveformCanvas: 3× slower (min 300ms)
+- PatternEditor: 400ms fixed (unrelated to duration)
+- Actual haptic playback: real-time (30-225ms)
+
+The haptic fires immediately at real speed, but the visual feedback is always delayed. There is no option to see the visualization at actual speed. For short patterns like selection (30ms), the visual plays 3× slower (90ms PatternBar) while the haptic is already done in 30ms.
+
+This means the user feels the haptic first and sees the visual feedback afterwards — the visual never synchronizes with the physical sensation.
+
+---
+
+## K10. Spring physics (homepage) is the only real-time-adjacent visualization
+
+`page.tsx:54-73` — Spring physics `kick()` fires immediately on click, with different force per element and staggered setTimeout delays (10-50ms). This is the closest to real-time haptic feedback visualization because:
+- It fires at the same instant as the haptic
+- The spring damping naturally decays over ~200-400ms (physics-based, not timer-based)
+- Different elements have different mass/stiffness creating a cascade feel
+
+But it doesn't show individual pulse structure — it's a single impulse that decays. It doesn't distinguish between 2-pulse selection and 5-pulse snap (both get one kick with different intensity).
+
+---
+
+## K11. Homepage stacks 3 simultaneous visualizations
+
+When clicking a pattern on the homepage, the user sees simultaneously:
+1. **Button animation** (btn-anim-* CSS, 300-500ms)
+2. **Spring physics** (framer-motion, immediate kick + decay)
+3. **PatternBar** (per-block sequential, 90-675ms)
+4. **Code line + mode badge** (instant text change)
+
+These four operate on completely different timescales and with different visual languages. The button bounces (CSS keyframes), the page elements shake (spring physics), and the bars light up sequentially (setTimeout). The overall effect is busy but expressive — however the spring shake happens in a different temporal dimension than the PatternBar sequencing.
+
+---
+
+## Summary of remaining visualization issues
+
+| ID | Issue | Severity |
+|----|-------|----------|
+| K1 | DrawCanvas is dead code — 258 lines unused | Medium — cleanup |
+| K2 | PatternEditor still uses all-at-once 400ms flash | High — inconsistent with PatternBar |
+| K3 | PatternBar label transition 0.4s vs bar 0.08s | Medium — labels linger |
+| K4 | scaleY(1.2) overflow at scale=2.5 | Low — minor visual |
+| K5 | Gap ticks nearly invisible (2px gray5 on gray5 spine) | Low — design choice |
+| K6 | WaveformCanvas gap noise non-deterministic | Low — stylistic |
+| K7 | WaveformCanvas never turns off (stays fully lit) | Info — by design |
+| K8 | Intensity formula differs between WaveformCanvas and PatternBar | Low — different contexts |
+| K9 | No real-time visualization synced to haptic playback | Info — 3× is intentional |
+| K10 | Spring physics doesn't show pulse structure | Info — different purpose |
+| K11 | Homepage stacks 3+ simultaneous viz on different timescales | Info — busy but expressive |
+
+---
+
+# L. VISUALIZATION DEEP MATHEMATICS (precision analysis)
+
+## L1. PatternBar exact timer schedule for all patterns
+
+SLOWDOWN = 3. All times in ms.
+
+**SELECTION (30ms → 90ms visual, 4 timers)**
+```
+Block[0] pulse 8ms@0.4:  ON→0ms   OFF→24ms
+Block[2] pulse 10ms@0.6: ON→60ms  OFF→90ms
+Visual gap between pulses: 60-24 = 36ms
+```
+
+**SUCCESS (175ms → 525ms visual, 6 timers)**
+```
+Block[0] pulse 15ms@0.4:  ON→0ms    OFF→45ms
+Block[2] pulse 25ms@0.7:  ON→165ms  OFF→240ms
+Block[4] pulse 35ms@1.0:  ON→420ms  OFF→525ms
+Visual gaps: 165-45=120ms, 420-240=180ms
+```
+
+**ERROR (225ms → 675ms visual, 8 timers)**
+```
+Block[0] pulse 30ms@0.7:  ON→0ms    OFF→90ms
+Block[2] pulse 30ms@0.7:  ON→180ms  OFF→270ms
+Block[4] pulse 35ms@0.9:  ON→360ms  OFF→465ms
+Block[6] pulse 40ms@1.0:  ON→555ms  OFF→675ms
+Visual gaps: 90ms each (uniform)
+```
+
+**TOGGLE (90ms → 270ms visual, 6 timers)**
+```
+Block[0] pulse 12ms@0.5:  ON→0ms    OFF→36ms
+Block[2] pulse 18ms@0.8:  ON→108ms  OFF→162ms
+Block[4] pulse 12ms@0.5:  ON→198ms  OFF→234ms
+Visual gaps: 108-36=72ms, 198-162=36ms
+Note: Gap before last pulse (36ms) is shorter than gap after first (72ms)
+      This reflects the actual pattern: first gap=24ms, second gap=24ms
+      But visual gap differs because pulse durations differ (12→18→12)
+```
+
+**SNAP (92ms → 276ms visual, 10 timers)**
+```
+Block[0] pulse 8ms@0.3:   ON→0ms    OFF→24ms
+Block[2] pulse 10ms@0.5:  ON→48ms   OFF→78ms
+Block[4] pulse 12ms@0.7:  ON→102ms  OFF→138ms
+Block[6] pulse 14ms@0.9:  ON→156ms  OFF→198ms
+Block[8] pulse 16ms@1.0:  ON→228ms  OFF→276ms
+Visual gaps: 24ms, 24ms, 18ms, 30ms
+Note: All actual gaps are 8ms × 3 = 24ms but visual gaps vary 18-30ms
+      because pulse durations differ (8,10,12,14,16ms × 3 = 24,30,36,42,48ms)
+      Gap = next_ON - prev_OFF = (cursor_at_next × 3) - ((cursor_at_prev + prev_duration) × 3)
+      = actual_gap × 3 = 24ms for all — WAIT, recalculating...
+```
+
+**SNAP recalculation (careful):**
+```
+cursor starts at 0
+Block[0]: pulse 8ms → cursor=0, ON=0×3=0, OFF=(0+8)×3=24. cursor→8
+Block[1]: gap 8ms → cursor→16
+Block[2]: pulse 10ms → cursor=16, ON=16×3=48, OFF=(16+10)×3=78. cursor→26
+Block[3]: gap 8ms → cursor→34
+Block[4]: pulse 12ms → cursor=34, ON=34×3=102, OFF=(34+12)×3=138. cursor→46
+Block[5]: gap 8ms → cursor→54
+Block[6]: pulse 14ms → cursor=54, ON=54×3=162, OFF=(54+14)×3=204. cursor→68
+Block[7]: gap 8ms → cursor→76
+Block[8]: pulse 16ms → cursor=76, ON=76×3=228, OFF=(76+16)×3=276. cursor→92
+Visual gaps between pulses: 48-24=24ms, 102-78=24ms, 162-138=24ms, 228-204=24ms
+All gaps exactly 24ms — CORRECT (8ms × 3 = 24ms)
+```
+
+**Overlap analysis: ZERO overlaps across all patterns.** Minimum visual gap is 24ms (snap), which is above the 16.67ms frame boundary at 60fps.
+
+---
+
+## L2. PatternBar tick layout at 400px container
+
+**SNAP (most ticks, 9 blocks, tightest spacing):**
+
+| Block | Type | Start% | Width% | Center% | Pixel@400px |
+|-------|------|--------|--------|---------|-------------|
+| 0 | pulse 8ms | 0 | 8.70 | 4.35 | 17.4 |
+| 1 | gap 8ms | 8.70 | 8.70 | 13.04 | 52.2 |
+| 2 | pulse 10ms | 17.39 | 10.87 | 22.83 | 91.3 |
+| 3 | gap 8ms | 28.26 | 8.70 | 32.61 | 130.4 |
+| 4 | pulse 12ms | 36.96 | 13.04 | 43.48 | 173.9 |
+| 5 | gap 8ms | 50.00 | 8.70 | 54.35 | 217.4 |
+| 6 | pulse 14ms | 58.70 | 15.22 | 66.30 | 265.2 |
+| 7 | gap 8ms | 73.91 | 8.70 | 78.26 | 313.0 |
+| 8 | pulse 16ms | 82.61 | 17.39 | 91.30 | 365.2 |
+
+Minimum tick-to-tick distance: 52.2 - 17.4 = **34.8px** (pulse→gap).
+Bar width = 14px (pulse) or 2px (gap), with translateX(-50%).
+Pulse tick hitbox: 14px wide = ±7px from center.
+At 34.8px distance with 7px pulse radius: 34.8 - 7 - 1 = **26.8px clearance** — no visual overlap.
+
+**SELECTION (widest spacing, 3 blocks):**
+
+| Block | Type | Start% | Width% | Center% | Pixel@400px |
+|-------|------|--------|--------|---------|-------------|
+| 0 | pulse 8ms | 0 | 26.67 | 13.33 | 53.3 |
+| 1 | gap 12ms | 26.67 | 40.00 | 46.67 | 186.7 |
+| 2 | pulse 10ms | 66.67 | 33.33 | 83.33 | 333.3 |
+
+Distance: 186.7 - 53.3 = **133.4px** between first two ticks. Very spacious.
+
+---
+
+## L3. WaveformCanvas spike geometry
+
+Canvas: 640×160px. midY = 80px.
+
+**Every pulse block always renders exactly 3 complete sine wave cycles** (phase goes 0 → 6π).
+
+For SUCCESS pulse[0] (15ms@0.4, blockW = 54.86px):
+```
+spikeH = 0.4 × 160 × 0.38 = 24.32px
+steps = max(6, floor(54.86/3)) = 18 spikes
+
+Spike positions: x = xStart + (i/18) × 54.86, for i=0..17
+Spacing between spikes: 54.86 / 18 = 3.05px per spike
+
+Upper spike max height: ±24.32px from midY
+Lower mirror max: ±12.16px from midY (50% of upper)
+
+Visual: 18 vertical lines, each 3px apart, forming 3 sine oscillations
+Max upper amplitude: midY - 24.32 = 55.68px (top of spike)
+Max lower amplitude: midY + 12.16 = 92.16px (bottom of mirror)
+```
+
+For SNAP pulse[8] (16ms@1.0, blockW = 111.3px):
+```
+spikeH = 1.0 × 160 × 0.38 = 60.8px
+steps = max(6, floor(111.3/3)) = 37 spikes
+Spacing: 111.3 / 37 = 3.01px per spike
+
+Max upper: midY - 60.8 = 19.2px (nearly touches top)
+Max lower: midY + 30.4 = 110.4px
+```
+
+**The upper spike at intensity=1.0 reaches pixel 19.2 from canvas top** — only 19px from the edge. The grid lines at y=20 nearly coincide with the peak. This creates a visually tight fit at max intensity.
+
+---
+
+## L4. PatternEditor vs PatternBar: same pattern, different view
+
+**SUCCESS pattern side-by-side:**
+
+PatternEditor (500ms timeline, ~400px wide):
+```
+Pulse[0]: pos=0ms, dur=15ms → left = (0+7.5)/500 = 1.5% = 6px
+Pulse[1]: pos=55ms, dur=25ms → left = (55+12.5)/500 = 13.5% = 54px
+Pulse[2]: pos=140ms, dur=35ms → left = (140+17.5)/500 = 31.5% = 126px
+All blocks: fixed 20ms visual width, uniform appearance
+Heights: 17.6px, 24.8px, 32px (proportional to intensity)
+Total used width: 31.5% of 500ms timeline = 63% empty space on right
+```
+
+PatternBar (175ms timeline, ~400px wide):
+```
+Pulse[0]: center = 4.29% = 17.1px
+Pulse[1]: center = 38.57% = 154.3px
+Pulse[2]: center = 90% = 360px
+Block widths: 8.57%, 14.29%, 20% (proportional to actual duration)
+Heights: 17.6px, 24.8px, 32px (same formula)
+Full timeline utilization — no empty space
+```
+
+**Key differences:**
+1. PatternEditor clusters blocks in the left 31.5% of timeline (because 175ms pattern uses only 35% of 500ms fixed timeline).
+2. PatternBar spreads blocks across full width — more visually balanced.
+3. PatternEditor block widths are uniform (all 20ms). PatternBar block widths vary with duration.
+4. The relative distances between blocks look completely different — PatternEditor compresses, PatternBar expands.
+
+---
+
+## L5. React rendering count per animation
+
+Each `setTimeout` callback triggers a separate re-render (not batched in React 18 for timer callbacks).
+
+| Pattern | Timers | Re-renders | Duration | Avg re-render interval |
+|---------|--------|------------|----------|----------------------|
+| selection | 4 | 4 | 90ms | 22.5ms |
+| success | 6 | 6 | 525ms | 87.5ms |
+| error | 8 | 8 | 675ms | 84.4ms |
+| toggle | 6 | 6 | 270ms | 45ms |
+| snap | 10 | 10 | 276ms | 27.6ms |
+
+**Snap has the highest re-render density:** 10 renders in 276ms = one render every 27.6ms. At 60fps (16.67ms per frame), this means ~1.66 renders per frame — some renders will coalesce into the same paint frame.
+
+Set allocations per animation: snap creates 15 Set objects (5 ON spreads + 5 ON new Sets + 5 OFF new Sets).
+
+---
+
+## L6. Spring physics impulse vs pattern duration
+
+| Pattern | intensityMap | Force (px) | Logo settle | QR settle | PatternBar end | Button anim end |
+|---------|-------------|------------|-------------|-----------|----------------|-----------------|
+| selection | 0.4 | 5.6 | ~270ms | ~760ms | 90ms | 300ms |
+| success | 0.7 | 9.8 | ~478ms | ~1340ms | 525ms | 450ms |
+| error | 1.0 | 14.0 | ~478ms | ~1340ms | 675ms | 500ms |
+| toggle | 0.5 | 7.0 | ~340ms | ~950ms | 270ms | 400ms |
+| snap | 0.8 | 11.2 | ~478ms | ~1340ms | 276ms | 500ms |
+
+**QR sticker always outlasts all other animations** — it wobbles for 760-1340ms while PatternBar finishes in 90-675ms. This is intentional (heavy, wobbly feel) but means there's always residual motion on screen after the pattern visualization completes.
+
+**For selection:** PatternBar finishes at 90ms, button at 300ms, logo at 270ms, but QR wobbles until ~760ms. The haptic was done in 30ms.
+
+---
+
+## L7. Haptic-to-visual sync timeline (SUCCESS pattern)
+
+```
+TIME   HAPTIC              PATTERNBAR           BUTTON ANIM         SPRING PHYSICS
+────── ─────────────────── ──────────────────── ─────────────────── ──────────────────
+0ms    Pulse[0] ON (15ms)  Bar[0] ON (green)    Frame 0% (0px)     Logo jolt ±9.8px
+15ms   Pulse[0] OFF        (still lit)          Frame 3.3%          Subtitle jolt
+30ms   Gap (25ms into gap) (still lit)          Frame 6.7%          Buttons jolt
+45ms   (gap)               Bar[0] OFF           Frame 10%           Bar jolt, codeLine
+55ms   Pulse[1] ON (25ms)  (dark, gap visual)   Frame 12.2%         Actions jolt
+80ms   Pulse[1] OFF        (dark)               Frame 17.8%         QR jolt (50ms delay)
+100ms  Gap (20ms into gap) (dark)               Frame 22.2%         All springs decaying
+140ms  Pulse[2] ON (35ms)  (dark)               Frame 31.1%         Logo nearing rest
+165ms  (pulse ongoing)     Bar[1] ON (green)    Frame 36.7%         Most springs ±2px
+175ms  Pulse[2] OFF ─ DONE (still lit)          Frame 38.9%         QR still ±5px
+210ms  ── haptic done ──   (still lit)          Frame 46.7%         QR ±3px
+240ms                      Bar[1] OFF           Frame 53.3%         QR ±2px
+315ms                      (dark, 105ms gap)    Frame 70%           QR ±1px
+420ms                      Bar[2] ON (green)    Frame 93.3%         All at rest
+450ms                      (still lit)          ANIMATION ENDS      ──
+525ms                      Bar[2] OFF ─ DONE    ──                  ──
+~1340ms                    ──                   ──                  QR finally at rest
+```
+
+**Critical insight:** The haptic finishes at 175ms, but the visual PatternBar doesn't show the final pulse (Bar[2]) until 420ms — that's **245ms after the haptic is done**. The user feels the last "thump" at 140ms but doesn't see it light up until 420ms later. The visual confirmation of the strongest final pulse is delayed by 280ms relative to the physical sensation.
+
+---
+
+## L8. CSS label color persistence creates phantom "lit" state
+
+`.seq-tick-label` transition: `color 0.4s ease-out` (line 1033)
+`.seq-tick-active .seq-tick-label`: `color: #16a34a; transition: color 0.02s` (line 1036-1038)
+
+For SNAP pattern, pulse gaps are 24ms visual. The label transition:
+- ON: instant (0.02s)
+- OFF: 0.4s ease-out = 400ms to fade from green back to gray
+
+**At 24ms visual gap between snap pulses:**
+- Bar turns off in 0.08s (80ms) — but gap is only 24ms, so bar is still mid-fade when next pulse fires
+- Label turns off in 0.4s (400ms) — label is still 94% green when next pulse fires (24ms into 400ms fade)
+
+**Result for SNAP:** All 5 labels appear continuously green because they never have time to fade back to gray. The sequential per-block effect is visible in the BARS but not in the LABELS. Labels show a solid green band across the entire pattern duration.
+
+For SELECTION (36ms visual gap): Same issue — label fade is 400ms but gap is 36ms. Labels stay green.
+
+Only SUCCESS has gaps long enough (120ms, 180ms) for labels to start fading noticeably (to ~70% and ~55% opacity at those durations into a 400ms ease-out).
