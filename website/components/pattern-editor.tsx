@@ -75,7 +75,7 @@ function patternToCode(pulses: Pulse[]): string {
 }
 
 const TIMELINE_MS = 500;
-const BLOCK_WIDTH = 20; // fixed width for all blocks (ms)
+const BLOCK_WIDTH = 10; // fixed width for new blocks (ms)
 const MIN_GAP = 8;
 
 export function PatternEditor() {
