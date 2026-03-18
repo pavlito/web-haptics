@@ -815,7 +815,7 @@ pre code,
   transition: color 0.2s, border-color 0.2s;
 }
 
-.docs-toc-link:first-of-type {
+.docs-toc-link-active {
   border-left-color: var(--gray12);
   color: var(--gray12);
 }
@@ -829,6 +829,19 @@ pre code,
   margin-top: 24px;
   padding-top: 16px;
   border-top: 1px solid var(--gray3);
+}
+
+.docs-toc-github {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--gray11);
+  padding: 3px 0;
+}
+
+.docs-toc-github:hover {
+  color: var(--gray12);
 }
 
 /* Doc demo (Preview/Code tabs) */
