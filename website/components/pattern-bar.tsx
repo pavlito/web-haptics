@@ -19,7 +19,6 @@ const MIN_BAR_HEIGHT = 8;
 
 export function PatternBar({ pattern, playKey, scale = 1 }: PatternBarProps) {
   const [litIndices, setLitIndices] = useState<Set<number>>(new Set());
-  const [playing, setPlaying] = useState(false);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const totalDuration = pattern.reduce((sum, b) => sum + b.duration, 0);
@@ -67,12 +66,6 @@ export function PatternBar({ pattern, playKey, scale = 1 }: PatternBarProps) {
     // First pulse lights synchronously — zero delay
     setLitIndices(immediateIndices);
 
-    // Playhead sweep runs for exact pattern duration
-    setPlaying(true);
-    newTimers.push(
-      setTimeout(() => setPlaying(false), totalDuration),
-    );
-
     timersRef.current = newTimers;
 
     return () => {
@@ -104,15 +97,7 @@ export function PatternBar({ pattern, playKey, scale = 1 }: PatternBarProps) {
           className="seq-spine"
           style={scale !== 1 ? { height: `${2 * scale}px`, bottom: `${18 * scale}px` } : undefined}
         />
-        {/* Playhead — sweeps left-to-right in real-time, synced with haptic */}
-        {playing && (
-          <div
-            className="seq-playhead"
-            style={{
-              animationDuration: `${totalDuration}ms`,
-            }}
-          />
-        )}
+        {/* Playhead removed — real-time bar lighting is sufficient */}
         {items.map((item) => {
           const barHeight = item.type === "pulse"
             ? (MIN_BAR_HEIGHT + (MAX_BAR_HEIGHT - MIN_BAR_HEIGHT) * item.intensity) * scale
