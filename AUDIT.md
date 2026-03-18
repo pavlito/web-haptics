@@ -1303,3 +1303,87 @@ For SNAP pattern, pulse gaps are 24ms visual. The label transition:
 For SELECTION (36ms visual gap): Same issue — label fade is 400ms but gap is 36ms. Labels stay green.
 
 Only SUCCESS has gaps long enough (120ms, 180ms) for labels to start fading noticeably (to ~70% and ~55% opacity at those durations into a 400ms ease-out).
+
+**Status:** FIXED — label transition changed to 0.08s to match bar fade.
+
+---
+
+# M. VISUALIZATION FINAL REVIEW (post all fixes)
+
+## M1. Spine doesn't scale with `scale` prop
+
+`globals.css:978-986` — spine is hardcoded `height: 2px`, `bottom: 18px`. PatternBar passes `scale` to bar heights but spine is pure CSS — unaffected.
+
+At V3's `scale=2.5`: bars are up to 80px tall but spine stays 2px. Visual proportion breaks.
+
+`pattern-bar.tsx:88` — timeline height scales (`56 * scale = 140px`) but spine height/position are CSS-only.
+
+---
+
+## M2. Gap tick vertical alignment is off
+
+`globals.css:1020` — `.seq-tick-gap .seq-tick-bar` has `margin-top: 9px`.
+
+The spine sits at `bottom: 18px`. Gap bars are 14px tall with 9px top margin. From the tick's bottom=0: gap bar top = 9px, gap bar bottom = 23px. Spine at bottom: 18px = from top of 56px container: 38px.
+
+Gap bars don't align flush with the spine — they hover above it. The 9px margin was likely tuned for the old layout but doesn't account for the flex column + gap:2px structure.
+
+---
+
+## M3. Pattern change mid-animation can leave stale lit indices
+
+`pattern-bar.tsx:27-67` — useEffect clears timers and calls `setLitIndices(new Set())` on playKey/pattern change. But if a timer fires between the effect cleanup and the new schedule (same event loop tick), a stale index could persist.
+
+In practice, React's effect cleanup runs synchronously before the new effect, and timers are async, so this is safe. But if `pattern` changes to a shorter array while old indices are lit (e.g., index 4 lit but new pattern only has 3 blocks), the `litIndices.has(4)` check on a non-existent item is harmless — it just doesn't match any rendered tick.
+
+**Verdict:** Safe in practice, edge case only.
+
+---
+
+## M4. Selection animation at SLOWDOWN=3 may be too fast
+
+Selection pattern: 30ms × 3 = 90ms total visual.
+- Pulse 0: ON at 0ms, OFF at 24ms (visible for 24ms)
+- Pulse 2: ON at 60ms, OFF at 90ms (visible for 30ms)
+- Gap between: 36ms
+
+At 60fps, 24ms = ~1.4 frames for first pulse. The human perception threshold for distinct sequential events is ~50-80ms. At 24ms visibility, the first pulse is borderline imperceptible as a distinct flash.
+
+Increasing SLOWDOWN to 5 would give selection 150ms total, with each pulse visible for 40-50ms — more clearly perceptible.
+
+---
+
+## M5. Bar width is fixed 14px — doesn't represent duration
+
+`globals.css:1000` — `.seq-tick-pulse .seq-tick-bar { width: 14px }`.
+
+PatternBar calculates `widthPct` per block (proportional to duration) but this value is only used for **positioning** (center of the width range), not for bar rendering. All pulse bars are visually identical width regardless of whether they represent 8ms or 40ms.
+
+This means a 5× duration difference between snap's first pulse (8ms) and error's last pulse (40ms) is invisible in bar width. Only height (intensity) and position encode information. Duration is only communicated via the ms label text.
+
+---
+
+## M6. 0ms duration pulse creates simultaneous on/off timers
+
+If a pattern contains `{ type: "pulse", duration: 0 }`:
+```
+onDelay = cursor * 3 = Xms
+offDelay = (cursor + 0) * 3 = Xms  // same value!
+```
+
+Two `setTimeout(fn, X)` with identical delays — both fire in the same task queue. The on-callback adds index to Set, the off-callback deletes it. Depending on execution order, the pulse either flickers for one frame or never appears.
+
+Not a practical issue (no default pattern has 0ms pulses) but a theoretical edge case.
+
+---
+
+## Summary of new findings
+
+| ID | Issue | Severity | Action |
+|----|-------|----------|--------|
+| M1 | Spine doesn't scale with `scale` prop | Medium — V3 visual | Could add inline style for spine |
+| M2 | Gap tick alignment off (9px margin) | Low — subtle visual | Adjust margin or remove |
+| M3 | Stale lit indices on pattern change | Safe — theoretical only | No action needed |
+| M4 | Selection at 3× may be too fast (24ms per pulse) | Medium — UX | Consider SLOWDOWN=5 for short patterns |
+| M5 | Bar width fixed 14px regardless of duration | Info — design choice | Consider proportional width |
+| M6 | 0ms duration pulse edge case | Low — theoretical | No action needed |
