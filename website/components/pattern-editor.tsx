@@ -238,10 +238,7 @@ export function PatternEditor() {
     for (const id of playTimersRef.current) clearTimeout(id);
     playTimersRef.current = [];
 
-    // Schedule per-block animation
-    // Fixed SLOWDOWN=3 (PatternBar uses adaptive, but PatternEditor has a fixed
-    // 500ms timeline where user-created patterns are typically longer)
-    const SLOWDOWN = 3;
+    // Real-time: bars light at actual pattern ms — synced with haptic playback
     let cursor = 0;
     const sorted = [...pulses].sort((a, b) => a.position - b.position);
     const newTimers: ReturnType<typeof setTimeout>[] = [];
@@ -251,8 +248,8 @@ export function PatternEditor() {
       const gapBefore = p.position - cursor;
       if (gapBefore > 0) cursor = p.position;
 
-      const onDelay = cursor * SLOWDOWN;
-      const offDelay = (cursor + p.duration) * SLOWDOWN;
+      const onDelay = cursor;
+      const offDelay = cursor + p.duration;
 
       if (onDelay === 0) {
         immediateIds.add(p.id);
@@ -277,7 +274,7 @@ export function PatternEditor() {
       cursor = p.position + p.duration;
     }
 
-    // Set first pulse(s) immediately — no async hop
+    // First pulse(s) light synchronously
     setLitIds(immediateIds);
 
     playTimersRef.current = newTimers;

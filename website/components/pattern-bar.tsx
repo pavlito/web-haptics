@@ -16,15 +16,14 @@ type PatternBarProps = {
 
 const MAX_BAR_HEIGHT = 32;
 const MIN_BAR_HEIGHT = 8;
-const MIN_ANIM_MS = 300; // minimum animation duration for readability
 
 export function PatternBar({ pattern, playKey, scale = 1 }: PatternBarProps) {
   const [litIndices, setLitIndices] = useState<Set<number>>(new Set());
+  const [playing, setPlaying] = useState(false);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const totalDuration = pattern.reduce((sum, b) => sum + b.duration, 0);
 
-  // useLayoutEffect runs before paint — eliminates 1-frame delay vs useEffect
   useLayoutEffect(() => {
     if (playKey === 0) return;
 
@@ -32,20 +31,17 @@ export function PatternBar({ pattern, playKey, scale = 1 }: PatternBarProps) {
     for (const id of timersRef.current) clearTimeout(id);
     timersRef.current = [];
 
-    const slowdown = totalDuration > 0 ? Math.max(3, MIN_ANIM_MS / totalDuration) : 3;
-
-    // Schedule each pulse to light up at its actual start time
+    // Real-time: bars light at actual pattern ms — synced with haptic playback
     let cursor = 0;
     const newTimers: ReturnType<typeof setTimeout>[] = [];
     const immediateIndices = new Set<number>();
 
     pattern.forEach((block, i) => {
       if (block.type === "pulse") {
-        const onDelay = cursor * slowdown;
-        const offDelay = (cursor + block.duration) * slowdown;
+        const onDelay = cursor;
+        const offDelay = cursor + block.duration;
 
         if (onDelay === 0) {
-          // First pulse: set synchronously to avoid setTimeout hop
           immediateIndices.add(i);
         } else {
           newTimers.push(
@@ -68,15 +64,21 @@ export function PatternBar({ pattern, playKey, scale = 1 }: PatternBarProps) {
       cursor += block.duration;
     });
 
-    // Set first pulse immediately — no async hop
+    // First pulse lights synchronously — zero delay
     setLitIndices(immediateIndices);
+
+    // Playhead sweep runs for exact pattern duration
+    setPlaying(true);
+    newTimers.push(
+      setTimeout(() => setPlaying(false), totalDuration),
+    );
 
     timersRef.current = newTimers;
 
     return () => {
       for (const id of newTimers) clearTimeout(id);
     };
-  }, [playKey, pattern]);
+  }, [playKey, pattern, totalDuration]);
 
   if (totalDuration === 0) return null;
 
@@ -102,6 +104,15 @@ export function PatternBar({ pattern, playKey, scale = 1 }: PatternBarProps) {
           className="seq-spine"
           style={scale !== 1 ? { height: `${2 * scale}px`, bottom: `${18 * scale}px` } : undefined}
         />
+        {/* Playhead — sweeps left-to-right in real-time, synced with haptic */}
+        {playing && (
+          <div
+            className="seq-playhead"
+            style={{
+              animationDuration: `${totalDuration}ms`,
+            }}
+          />
+        )}
         {items.map((item) => {
           const barHeight = item.type === "pulse"
             ? (MIN_BAR_HEIGHT + (MAX_BAR_HEIGHT - MIN_BAR_HEIGHT) * item.intensity) * scale

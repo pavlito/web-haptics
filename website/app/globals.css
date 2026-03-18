@@ -995,6 +995,24 @@ pre code,
   gap: 2px;
 }
 
+/* Playhead — sweeps left-to-right in real-time */
+@keyframes seq-playhead-sweep {
+  from { left: 0; }
+  to { left: 100%; }
+}
+
+.seq-playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #22c55e;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+  z-index: 1;
+  animation: seq-playhead-sweep linear forwards;
+  pointer-events: none;
+}
+
 /* Pulse ticks */
 .seq-tick-pulse .seq-tick-bar {
   width: 14px;
