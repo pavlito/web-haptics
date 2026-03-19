@@ -1,6 +1,6 @@
 {
   "name": "bzzz",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Haptic and audio feedback for the web.",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
