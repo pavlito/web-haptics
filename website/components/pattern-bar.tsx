@@ -94,30 +94,27 @@ export function PatternBar({ pattern, playKey, scale = 1 }: PatternBarProps) {
 
   return (
     <div className="seq">
-      <div className="seq-timeline" style={scale !== 1 ? { height: 56 * scale } : undefined}>
+      <div className="seq-timeline" style={scale !== 1 ? { height: 40 * scale } : undefined}>
         <div
           className="seq-spine"
-          style={scale !== 1 ? { height: `${2 * scale}px`, bottom: `${18 * scale}px` } : undefined}
+          style={scale !== 1 ? { height: `${2 * scale}px` } : undefined}
         />
         {/* Playhead removed — real-time bar lighting is sufficient */}
-        {items.map((item) => {
-          const barHeight = item.type === "pulse"
-            ? (MIN_BAR_HEIGHT + (MAX_BAR_HEIGHT - MIN_BAR_HEIGHT) * item.intensity) * scale
-            : 14 * scale;
+        {items.filter((item) => item.type === "pulse").map((item) => {
+          const barHeight = (MIN_BAR_HEIGHT + (MAX_BAR_HEIGHT - MIN_BAR_HEIGHT) * item.intensity) * scale;
 
           return (
             <div
               key={item.index}
-              className={`seq-tick seq-tick-${item.type} ${litIndices.has(item.index) ? "seq-tick-active" : ""}`}
+              className={`seq-tick seq-tick-pulse ${litIndices.has(item.index) ? "seq-tick-active" : ""}`}
               style={{
                 left: `${item.startPct + item.widthPct / 2}%`,
               }}
             >
               <div
                 className="seq-tick-bar"
-                style={item.type === "pulse" ? { height: `${barHeight}px` } : undefined}
+                style={{ height: `${barHeight}px` }}
               />
-              <span className="seq-tick-label">{item.duration}ms</span>
             </div>
           );
         })}

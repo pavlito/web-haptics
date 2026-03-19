@@ -345,20 +345,9 @@ export function PatternEditor() {
             className="pe-timeline"
             onClick={handleTimelineClick}
           >
-            {/* Time markers */}
-            {Array.from({ length: Math.floor(totalDuration / 50) + 1 }, (_, i) => (
-              <span
-                key={i}
-                className="pe-time-marker"
-                style={{ left: `${msToPercent(i * 50)}%` }}
-              >
-                {i * 50}
-              </span>
-            ))}
-
             {/* Pulse blocks */}
             {pulses.map((p) => {
-              const barH = 8 + (32 - 8) * p.intensity; // 8px min, 32px max — same as PatternBar
+              const barH = 8 + (32 - 8) * p.intensity;
               return (
                 <div
                   key={p.id}
@@ -374,7 +363,6 @@ export function PatternEditor() {
                     className="pe-handle-top"
                     onMouseDown={(e) => startDrag(e, p.id, "intensity")}
                   />
-                  <span className="pe-block-label">{p.duration}ms</span>
                 </div>
               );
             })}
