@@ -62,6 +62,7 @@ beforeEach(() => {
   setNavigatorVibrate(undefined);
   setAudioContext(false);
   haptics.setEnabled(true);
+  haptics.setOutput("auto");
 });
 
 describe("haptics runtime", () => {
@@ -296,7 +297,7 @@ describe("vibration pattern generation", () => {
 });
 
 describe("dual-mode playback", () => {
-  it("plays haptics and audio simultaneously when both available", () => {
+  it("auto mode: haptics only when vibrate available (no audio)", () => {
     const vibrate = vi.fn(() => true);
     setNavigatorVibrate(vibrate);
     setAudioContext(true);
@@ -304,7 +305,114 @@ describe("dual-mode playback", () => {
     const result = haptics.success();
 
     expect(result.mode).toBe("haptics");
+    expect(result.haptics).toBe(true);
+    expect(result.audio).toBe(false);
     expect(vibrate).toHaveBeenCalled();
+  });
+
+  it("auto mode: falls back to audio when no haptics", () => {
+    setAudioContext(true);
+
+    const result = haptics.success();
+
+    expect(result.mode).toBe("audio");
+    expect(result.haptics).toBe(false);
+    expect(result.audio).toBe(true);
+  });
+});
+
+describe("output modes", () => {
+  it("both mode: plays haptics and audio together", () => {
+    const vibrate = vi.fn(() => true);
+    setNavigatorVibrate(vibrate);
+    setAudioContext(true);
+    haptics.setOutput("both");
+
+    const result = haptics.success();
+
+    expect(result.mode).toBe("haptics");
+    expect(result.haptics).toBe(true);
+    expect(result.audio).toBe(true);
+  });
+
+  it("haptics mode: only vibrate, no audio", () => {
+    const vibrate = vi.fn(() => true);
+    setNavigatorVibrate(vibrate);
+    setAudioContext(true);
+    haptics.setOutput("haptics");
+
+    const result = haptics.success();
+
+    expect(result.mode).toBe("haptics");
+    expect(result.haptics).toBe(true);
+    expect(result.audio).toBe(false);
+  });
+
+  it("audio mode: only audio, no vibrate", () => {
+    const vibrate = vi.fn(() => true);
+    setNavigatorVibrate(vibrate);
+    setAudioContext(true);
+    haptics.setOutput("audio");
+
+    const result = haptics.success();
+
+    expect(result.mode).toBe("audio");
+    expect(result.haptics).toBe(false);
+    expect(result.audio).toBe(true);
+    expect(vibrate).not.toHaveBeenCalled();
+  });
+
+  it("haptics mode on desktop (no vibrate) returns none", () => {
+    setAudioContext(true);
+    haptics.setOutput("haptics");
+
+    const result = haptics.success();
+
+    expect(result.mode).toBe("none");
+    expect(result.haptics).toBe(false);
+    expect(result.audio).toBe(false);
+  });
+
+  it("audio mode with no AudioContext returns none", () => {
+    const vibrate = vi.fn(() => true);
+    setNavigatorVibrate(vibrate);
+    haptics.setOutput("audio");
+
+    const result = haptics.success();
+
+    expect(result.mode).toBe("none");
+    expect(result.haptics).toBe(false);
+    expect(result.audio).toBe(false);
+  });
+
+  it("getOutput returns current mode", () => {
+    expect(haptics.getOutput()).toBe("auto");
+    haptics.setOutput("both");
+    expect(haptics.getOutput()).toBe("both");
+  });
+
+  it("throws on invalid output mode", () => {
+    expect(() => haptics.setOutput("invalid" as any)).toThrow("Invalid output mode");
+  });
+
+  it("instance output is isolated from singleton", () => {
+    const vibrate = vi.fn(() => true);
+    setNavigatorVibrate(vibrate);
+    setAudioContext(true);
+
+    haptics.setOutput("both");
+    const instance = createHaptics({ output: "audio" });
+
+    expect(haptics.getOutput()).toBe("both");
+    expect(instance.getOutput()).toBe("audio");
+
+    const singletonResult = haptics.success();
+    expect(singletonResult.haptics).toBe(true);
+    expect(singletonResult.audio).toBe(true);
+
+    const instanceResult = instance.play("success");
+    expect(instanceResult.haptics).toBe(false);
+    expect(instanceResult.audio).toBe(true);
   });
 });
 

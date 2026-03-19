@@ -18,10 +18,22 @@ export type NamedPattern =
   | "toggle"
   | "snap";
 
+export type OutputMode = "auto" | "haptics" | "audio" | "both";
+
 export type PlaybackMode = "haptics" | "audio" | "none";
 
 export type PlaybackResult = {
+  /** Primary output channel used */
   mode: PlaybackMode;
+  /** Whether vibration/taptic fired this call */
+  haptics: boolean;
+  /** Whether audio click fired this call */
+  audio: boolean;
+};
+
+export type PlayOptions = {
+  output?: OutputMode;
+  enabled?: boolean;
 };
 
 export type CapabilityState = {
@@ -35,6 +47,7 @@ export type PatternRegistry = Record<string, PatternBlock[]>;
 
 export type CreateHapticsOptions = {
   patterns?: PatternRegistry;
+  output?: OutputMode;
 };
 
 export type HapticsApi = {
@@ -47,6 +60,8 @@ export type HapticsApi = {
   getCapabilities: () => CapabilityState;
   setEnabled: (enabled: boolean) => void;
   isEnabled: () => boolean;
+  setOutput: (mode: OutputMode) => void;
+  getOutput: () => OutputMode;
   dispose: () => void;
 };
 
@@ -56,5 +71,7 @@ export type HapticsInstance = {
   getCapabilities: () => CapabilityState;
   setEnabled: (enabled: boolean) => void;
   isEnabled: () => boolean;
+  setOutput: (mode: OutputMode) => void;
+  getOutput: () => OutputMode;
   dispose: () => void;
 };

@@ -4,6 +4,7 @@ import type {
   CapabilityState,
   CreateHapticsOptions,
   HapticsInstance,
+  OutputMode,
   PatternBlock,
   PlaybackResult,
 } from "./types";
@@ -18,6 +19,8 @@ type UseHapticsReturn = {
   getCapabilities: () => CapabilityState;
   isEnabled: () => boolean;
   setEnabled: (enabled: boolean) => void;
+  getOutput: () => OutputMode;
+  setOutput: (mode: OutputMode) => void;
 };
 
 const hapticsReturn: UseHapticsReturn = {
@@ -30,6 +33,8 @@ const hapticsReturn: UseHapticsReturn = {
   getCapabilities: haptics.getCapabilities,
   isEnabled: haptics.isEnabled,
   setEnabled: haptics.setEnabled,
+  getOutput: haptics.getOutput,
+  setOutput: haptics.setOutput,
 };
 
 /**
@@ -47,6 +52,8 @@ type UseCreateHapticsReturn = {
   getCapabilities: () => CapabilityState;
   isEnabled: () => boolean;
   setEnabled: (enabled: boolean) => void;
+  getOutput: () => OutputMode;
+  setOutput: (mode: OutputMode) => void;
 };
 
 /**
@@ -78,5 +85,7 @@ export function useCreateHaptics(
     getCapabilities: instance.getCapabilities,
     isEnabled: instance.isEnabled,
     setEnabled: instance.setEnabled,
+    getOutput: instance.getOutput,
+    setOutput: instance.setOutput,
   }), [instance]);
 }

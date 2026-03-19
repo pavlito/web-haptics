@@ -8,9 +8,11 @@ export type {
   HapticsApi,
   HapticsInstance,
   NamedPattern,
+  OutputMode,
   PatternBlock,
   PatternRegistry,
   PlaybackMode,
   PlaybackResult,
+  PlayOptions,
   PulseBlock,
 } from "./types";

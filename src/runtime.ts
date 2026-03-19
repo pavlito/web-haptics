@@ -8,9 +8,18 @@ import type {
   HapticsApi,
   HapticsInstance,
   NamedPattern,
+  OutputMode,
   PatternBlock,
   PatternRegistry,
 } from "./types";
+
+const VALID_OUTPUTS = new Set<OutputMode>(["auto", "haptics", "audio", "both"]);
+
+function validateOutput(mode: OutputMode): void {
+  if (!VALID_OUTPUTS.has(mode)) {
+    throw new Error(`Invalid output mode: ${mode}. Expected one of: ${[...VALID_OUTPUTS].join(", ")}`);
+  }
+}
 
 function createRegistry(overrides?: PatternRegistry): Map<string, PatternBlock[]> {
   const registry = new Map<string, PatternBlock[]>();
@@ -46,9 +55,13 @@ function resolvePattern(
 }
 
 let singletonEnabled = true;
+let singletonOutput: OutputMode = "auto";
 
 function playNamedPattern(name: NamedPattern) {
-  return playPattern(clonePattern(defaultPatterns[name]), { enabled: singletonEnabled });
+  return playPattern(clonePattern(defaultPatterns[name]), {
+    enabled: singletonEnabled,
+    output: singletonOutput,
+  });
 }
 
 export const haptics: HapticsApi = {
@@ -57,10 +70,15 @@ export const haptics: HapticsApi = {
   error: () => playNamedPattern("error"),
   toggle: () => playNamedPattern("toggle"),
   snap: () => playNamedPattern("snap"),
-  play: (pattern) => playPattern(clonePattern(pattern), { enabled: singletonEnabled }),
+  play: (pattern) => playPattern(clonePattern(pattern), {
+    enabled: singletonEnabled,
+    output: singletonOutput,
+  }),
   getCapabilities: () => getCapabilityState(),
   setEnabled: (enabled: boolean) => { singletonEnabled = enabled; },
   isEnabled: () => singletonEnabled,
+  setOutput: (mode: OutputMode) => { validateOutput(mode); singletonOutput = mode; },
+  getOutput: () => singletonOutput,
   dispose: () => { resetAudioEngine(); destroySafariHaptic(); },
 };
 
@@ -69,15 +87,20 @@ export function createHaptics(
 ): HapticsInstance {
   const registry = createRegistry(options.patterns);
   let enabled = true;
+  let output: OutputMode = options.output ?? "auto";
+
+  if (options.output) validateOutput(options.output);
 
   return {
-    play: (nameOrPattern) => playPattern(resolvePattern(registry, nameOrPattern), { enabled }),
+    play: (nameOrPattern) => playPattern(resolvePattern(registry, nameOrPattern), { enabled, output }),
     register: (name, pattern) => {
       registry.set(name, clonePattern(pattern));
     },
     getCapabilities: () => getCapabilityState(),
     setEnabled: (value: boolean) => { enabled = value; },
     isEnabled: () => enabled,
+    setOutput: (mode: OutputMode) => { validateOutput(mode); output = mode; },
+    getOutput: () => output,
     dispose: () => { resetAudioEngine(); destroySafariHaptic(); },
   };
 }

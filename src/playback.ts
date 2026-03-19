@@ -1,7 +1,7 @@
 import { getAudioEngine } from "./audio";
 import { getCapabilityState } from "./capabilities";
 import { playSafariPattern } from "./safari-haptics";
-import type { PatternBlock, PlaybackResult } from "./types";
+import type { OutputMode, PatternBlock, PlayOptions, PlaybackResult } from "./types";
 
 const PWM_CYCLE = 20; // ms per PWM cycle for intensity simulation
 
@@ -90,38 +90,52 @@ function validatePattern(pattern: readonly PatternBlock[]): PatternBlock[] {
   });
 }
 
+function shouldPlayHaptics(output: OutputMode): boolean {
+  return output === "auto" || output === "haptics" || output === "both";
+}
+
+function shouldPlayAudio(output: OutputMode, hapticsSucceeded: boolean): boolean {
+  if (output === "audio" || output === "both") return true;
+  if (output === "auto" && !hapticsSucceeded) return true;
+  return false;
+}
+
 export function playPattern(
   pattern: readonly PatternBlock[],
-  options?: { enabled?: boolean },
+  options?: PlayOptions,
 ): PlaybackResult {
   const capabilities = getCapabilityState();
-  if (capabilities.reducedMotion || options?.enabled === false) return { mode: "none" };
+  const output: OutputMode = options?.output ?? "auto";
+
+  if (capabilities.reducedMotion || options?.enabled === false) {
+    return { mode: "none", haptics: false, audio: false };
+  }
+
   const validated = validatePattern(pattern);
-  const vibrationPattern = toVibrationPattern(validated);
+  const hasPulse = validated.some((b) => b.type === "pulse" && b.duration >= 5);
+  let hapticsPlayed = false;
+  let audioPlayed = false;
 
-  if (capabilities.ios && validated.some((b) => b.type === "pulse" && b.duration >= 5)) {
-    playSafariPattern(validated);
-    try { playAudioClicks(validated); } catch {}
-    return { mode: "haptics" };
-  }
-
-  if (
-    vibrationPattern.length > 0 &&
-    capabilities.haptics &&
-    navigator.vibrate(vibrationPattern)
-  ) {
-    try { playAudioClicks(validated); } catch {}
-    return { mode: "haptics" };
-  }
-
-  if (capabilities.audio) {
-    try {
-      const played = playAudioClicks(validated);
-      return { mode: played ? "audio" : "none" };
-    } catch {
-      return { mode: "none" };
+  // Try haptics (iOS or Vibration API)
+  if (shouldPlayHaptics(output) && hasPulse) {
+    if (capabilities.ios) {
+      playSafariPattern(validated);
+      hapticsPlayed = true;
+    } else {
+      const vibrationPattern = toVibrationPattern(validated);
+      if (vibrationPattern.length > 0 && capabilities.haptics && navigator.vibrate(vibrationPattern)) {
+        hapticsPlayed = true;
+      }
     }
   }
 
-  return { mode: "none" };
+  // Try audio
+  if (shouldPlayAudio(output, hapticsPlayed) && capabilities.audio) {
+    try {
+      audioPlayed = playAudioClicks(validated);
+    } catch {}
+  }
+
+  const mode = hapticsPlayed ? "haptics" : audioPlayed ? "audio" : "none";
+  return { mode, haptics: hapticsPlayed, audio: audioPlayed };
 }
