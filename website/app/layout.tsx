@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   icons: {
-    icon: "/logo-icon.svg",
+    icon: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/logo-icon.svg`,
   },
 };
 
