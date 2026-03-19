@@ -33,7 +33,7 @@ export default function V3Page() {
     <>
       <section className="v3-hero">
         <h1 className="v3-title">bzzz</h1>
-        <p className="v3-subtitle">Haptic feedback for the web.</p>
+        <p className="v3-subtitle">Haptic and audio feedback for the web.</p>
 
         <div className="v3-buttons">
           {patternMeta.map((p) => (

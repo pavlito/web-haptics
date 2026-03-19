@@ -1,7 +1,7 @@
 {
   "name": "bzzz",
   "version": "0.1.0",
-  "description": "Haptic feedback for the web. Native vibration + audio fallback.",
+  "description": "Haptic and audio feedback for the web.",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",

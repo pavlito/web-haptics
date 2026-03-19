@@ -92,7 +92,7 @@ export default function HomePage() {
             className="hero-subtitle"
             style={{ x: subtitle.x, y: subtitle.y }}
           >
-            Haptic feedback for the web.
+            Haptic and audio feedback for the web.
           </motion.p>
 
           <div className="hero-demo">

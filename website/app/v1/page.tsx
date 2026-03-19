@@ -33,7 +33,7 @@ export default function V1Page() {
     <>
       <section className="v1-hero">
         <h1 className="v1-title">bzzz</h1>
-        <p className="v1-subtitle">Haptic feedback for the web. Native vibration + audio fallback.</p>
+        <p className="v1-subtitle">Haptic and audio feedback for the web.</p>
 
         <div className="v1-scope">
           <div className="v1-scope-header">

@@ -1,6 +1,6 @@
 # bzzz
 
-Haptic feedback for the web. Native vibration + audio fallback.
+Haptic and audio feedback for the web.
 
 [![npm](https://img.shields.io/npm/v/bzzz)](https://www.npmjs.com/package/bzzz)
 [![bundle size](https://img.shields.io/bundlephobia/minzip/bzzz)](https://bundlephobia.com/package/bzzz)

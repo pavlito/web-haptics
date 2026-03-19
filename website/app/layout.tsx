@@ -8,11 +8,11 @@ const caveat = Caveat({ subsets: ["latin"], display: "swap", variable: "--font-h
 
 export const metadata: Metadata = {
   title: "bzzz",
-  description: "Haptic feedback for the web. Native vibration + audio fallback.",
+  description: "Haptic and audio feedback for the web.",
   metadataBase: new URL("https://pavlito.github.io/bzzz"),
   openGraph: {
     title: "bzzz",
-    description: "Haptic feedback for the web. Native vibration + audio fallback.",
+    description: "Haptic and audio feedback for the web.",
     type: "website",
   },
   icons: {
