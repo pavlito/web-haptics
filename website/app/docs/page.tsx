@@ -129,6 +129,24 @@ haptics.isEnabled();       // → false
 haptics.setEnabled(true);  // resume
 haptics.success();         // → { mode: "haptics" }`}
         />
+        <h3>Output mode</h3>
+        <p>
+          Control which output channels are used. The default{" "}
+          <code>"auto"</code> mode uses haptics when available and falls back
+          to audio — never both at once.
+        </p>
+        <CodeBlock
+          code={`haptics.setOutput("audio");   // audio only, never vibrate
+haptics.setOutput("haptics"); // vibration only, never play audio
+haptics.setOutput("both");    // always fire both when available
+haptics.setOutput("auto");    // default: haptics if available, else audio
+
+haptics.getOutput(); // → "audio"`}
+        />
+        <p>
+          Pass <code>output</code> to <code>createHaptics()</code> to set the
+          mode per-instance from creation.
+        </p>
         <p>
           Call <code>dispose()</code> to clean up the AudioContext and any
           internal DOM elements. Safe to call multiple times.
@@ -316,6 +334,8 @@ isEnabled();       // → boolean`}
             <tr><td><code>getCapabilities()</code></td><td><code>CapabilityState</code></td><td>Check device support</td></tr>
             <tr><td><code>setEnabled(bool)</code></td><td><code>void</code></td><td>Enable or disable globally</td></tr>
             <tr><td><code>isEnabled()</code></td><td><code>boolean</code></td><td>Check enabled state</td></tr>
+            <tr><td><code>setOutput(mode)</code></td><td><code>void</code></td><td>Set output channel routing</td></tr>
+            <tr><td><code>getOutput()</code></td><td><code>OutputMode</code></td><td>Current output mode</td></tr>
             <tr><td><code>dispose()</code></td><td><code>void</code></td><td>Clean up AudioContext and DOM</td></tr>
           </tbody>
         </table></div>
@@ -328,9 +348,23 @@ isEnabled();       // → boolean`}
           </thead>
           <tbody>
             <tr><td><code>patterns</code></td><td><code>Record&lt;string, PatternBlock[]&gt;</code></td><td><code>{"{}"}</code></td></tr>
+            <tr><td><code>output</code></td><td><code>OutputMode</code></td><td><code>"auto"</code></td></tr>
           </tbody>
         </table></div>
         <p>Returns a <code>HapticsInstance</code> with <code>play(name | pattern)</code>, <code>register(name, pattern)</code>, <code>getCapabilities()</code>, <code>setEnabled()</code>, <code>isEnabled()</code>, and <code>dispose()</code>.</p>
+
+        <h3>OutputMode</h3>
+        <div className="api-table-wrap"><table className="api-table">
+          <thead>
+            <tr><th>Value</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>"auto"</code></td><td>Haptics if available, audio fallback — never both (default)</td></tr>
+            <tr><td><code>"haptics"</code></td><td>Vibration / Taptic Engine only — never plays audio</td></tr>
+            <tr><td><code>"audio"</code></td><td>Audio clicks only — never vibrates</td></tr>
+            <tr><td><code>"both"</code></td><td>Fire both channels simultaneously when available</td></tr>
+          </tbody>
+        </table></div>
 
         <h3>PlaybackResult</h3>
         <div className="api-table-wrap"><table className="api-table">
@@ -338,7 +372,9 @@ isEnabled();       // → boolean`}
             <tr><th>Prop</th><th>Type</th><th>Description</th></tr>
           </thead>
           <tbody>
-            <tr><td><code>mode</code></td><td><code>{'"haptics" | "audio" | "none"'}</code></td><td>Which output was used</td></tr>
+            <tr><td><code>mode</code></td><td><code>{'"haptics" | "audio" | "none"'}</code></td><td>Primary output channel used</td></tr>
+            <tr><td><code>haptics</code></td><td><code>boolean</code></td><td>Whether vibration / Taptic Engine fired</td></tr>
+            <tr><td><code>audio</code></td><td><code>boolean</code></td><td>Whether audio click fired</td></tr>
           </tbody>
         </table></div>
 
