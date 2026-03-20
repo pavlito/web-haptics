@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
+import { haptics } from "bzzz";
 
 type DocsLayoutProps = {
   title: string;
@@ -17,6 +18,11 @@ export function DocsLayout({
   children,
 }: DocsLayoutProps) {
   const [activeId, setActiveId] = useState(sections[0]?.id ?? "");
+
+  useEffect(() => {
+    haptics.setOutput("both");
+    return () => { haptics.setOutput("auto"); };
+  }, []);
 
   useEffect(() => {
     const ids = sections.map((s) => s.id);
