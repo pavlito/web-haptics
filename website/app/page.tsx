@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { motion, useSpring } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
@@ -35,6 +35,11 @@ export default function HomePage() {
   const [animKey, setAnimKey] = useState<string | null>(null);
   const [playKey, setPlayKey] = useState(0);
   const animRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  useEffect(() => {
+    haptics.setOutput("both");
+    return () => { haptics.setOutput("auto"); };
+  }, []);
 
   const logo = useShakeSpring(0.3, 1500, 5);
   const subtitle = useShakeSpring(0.25, 1500, 5);
